@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vroom ! · Comment ça marche</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F7F5F0; --desk:#EFEDE7; --card:#FFFFFF;
+    --ink:#17211C; --ink-2:#4C5A53; --ink-3:#5B6960; --ink-4:#6B7871;
+    --line:#E3DED2; --line-2:#D6D0C2;
+    --teal:#2F6F62; --teal-dark:#204B42; --teal-soft:#E9EFEA;
+    --amber:#B4562A; --amber-soft:#F7EBE4;
+    --pip-empty:#C9D2CC;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--desk);color:var(--ink);
+    font-family:'Public Sans',-apple-system,'Segoe UI',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .app{
+    max-width:460px;margin:0 auto;min-height:100vh;background:var(--paper);
+    border-left:1px solid var(--line);border-right:1px solid var(--line);
+    padding:26px 20px 40px;
+  }
+
+  header h1{margin:0;font-size:25px;font-weight:700;letter-spacing:-0.02em;}
+  header .tag{font-size:13px;font-weight:600;color:var(--teal);margin-left:6px;}
+  header .sub{margin:8px 0 0;font-size:14px;color:var(--ink-3);line-height:1.5;}
+
+  .retour{
+    display:inline-block;margin:22px 0 30px;padding:12px 18px;min-height:48px;
+    background:var(--ink);color:var(--paper);border-radius:10px;
+    font-size:14.5px;font-weight:600;text-decoration:none;line-height:24px;
+  }
+  .retour.bas{margin:34px 0 0;}
+
+  .etape{margin:0 0 34px;}
+  .etape .num{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:22px;height:22px;border-radius:50%;background:var(--ink);color:var(--paper);
+    font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;margin-right:9px;
+  }
+  .etape h2{
+    display:flex;align-items:center;margin:0 0 7px;
+    font-size:16.5px;font-weight:700;letter-spacing:-0.01em;
+  }
+  .etape p{margin:0 0 13px;padding-left:31px;font-size:14px;color:var(--ink-3);line-height:1.55;}
+  .etape p b{color:var(--ink);font-weight:600;}
+
+  /* la petite scène animée */
+  .scene{
+    margin-left:31px;background:var(--card);border:1px solid var(--line);
+    border-radius:12px;padding:14px;overflow:hidden;
+  }
+  .lbl{
+    font-size:10px;font-weight:700;color:var(--ink-4);
+    text-transform:uppercase;letter-spacing:.08em;margin-bottom:9px;
+  }
+
+  .chips{display:flex;flex-wrap:wrap;gap:6px;}
+  .chip{
+    padding:7px 13px;border-radius:999px;border:1px solid var(--line-2);
+    background:var(--card);color:var(--ink-2);font-size:12.5px;font-weight:600;
+  }
+  .chip.pris{background:var(--ink);border-color:var(--ink);color:var(--paper);}
+
+  .ligne{
+    display:grid;grid-template-columns:46px 1fr auto;align-items:center;gap:11px;
+    background:var(--card);border:1px solid var(--line);border-radius:9px;
+    padding:10px 11px;
+  }
+  .ligne + .ligne{margin-top:6px;}
+  .ligne .h{font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;}
+  .ligne .k{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-4);margin-top:2px;}
+  .ligne .n{font-size:13.5px;font-weight:600;}
+  .ligne .m{font-size:12px;color:var(--ink-4);margin-top:1px;}
+  .pips{display:flex;gap:3px;margin-top:6px;}
+  .pip{width:8px;height:12px;border-radius:2px;background:var(--card);border:1px solid var(--pip-empty);}
+  .pip.on{background:var(--teal);border-color:var(--teal);}
+  .avec{font-size:12px;font-weight:600;color:var(--teal-dark);margin-top:5px;}
+
+  .bouton{
+    padding:9px 12px;border-radius:8px;border:1px solid var(--teal);
+    background:var(--teal);color:#fff;font-size:12px;font-weight:600;white-space:nowrap;
+  }
+  .bouton.ambre{background:var(--card);border-color:var(--amber);color:var(--amber);}
+  .bouton.vide{background:none;color:var(--teal-dark);}
+  .badge{
+    font-size:10px;font-weight:700;padding:5px 8px;border-radius:5px;
+    text-transform:uppercase;letter-spacing:.06em;background:var(--ink);color:var(--paper);
+  }
+  .segmented{display:flex;border:1px solid var(--ink);border-radius:8px;overflow:hidden;}
+  .segmented span{flex:1;padding:9px 0;text-align:center;font-size:12.5px;font-weight:600;}
+  .segmented span.on{background:var(--ink);color:var(--paper);}
+
+  .message{
+    margin-top:9px;background:var(--ink);color:var(--paper);border-radius:9px;
+    padding:10px 12px;font-size:12.5px;line-height:1.45;
+  }
+  .message.doux{background:var(--teal-soft);color:var(--teal-dark);}
+
+  .doigt{
+    position:absolute;width:15px;height:15px;border-radius:50%;
+    background:var(--amber);opacity:0;pointer-events:none;
+  }
+  .relatif{position:relative;}
+
+  .fin{
+    margin-top:34px;padding:16px;border:1px solid var(--line-2);border-radius:12px;
+    background:var(--card);
+  }
+  .fin h2{margin:0 0 8px;font-size:15.5px;font-weight:700;}
+  .fin p{margin:0 0 10px;font-size:13.5px;color:var(--ink-3);line-height:1.55;}
+  .fin p:last-child{margin:0;}
+
+  /* ---------- animations ----------
+     Chaque scène part de l'état vide et arrive à l'état utile. L'état final
+     est l'état par défaut : sans animation, la notice reste juste. */
+  /* Le cycle tient l'état utile les trois quarts du temps : une scène qui
+     reste vide trop longtemps se lit comme une panne, pas comme une leçon. */
+  @keyframes tape{
+    0%,4%   {opacity:0;transform:scale(.4);}
+    9%      {opacity:1;transform:scale(1);}
+    14%     {opacity:1;transform:scale(.8);}
+    22%,100%{opacity:0;transform:scale(1);}
+  }
+  @keyframes choisi{
+    0%,12%  {background:var(--card);border-color:var(--line-2);color:var(--ink-2);}
+    20%,100%{background:var(--ink);border-color:var(--ink);color:var(--paper);}
+  }
+  @keyframes entre{
+    0%,14%  {opacity:0;transform:translateY(8px);}
+    24%,100%{opacity:1;transform:none;}
+  }
+  @keyframes remplit{
+    0%,16%  {background:var(--card);border-color:var(--pip-empty);}
+    26%,100%{background:var(--teal);border-color:var(--teal);}
+  }
+  @keyframes vide{
+    0%,16%  {background:var(--teal);border-color:var(--teal);}
+    26%,100%{background:var(--card);border-color:var(--pip-empty);}
+  }
+  @keyframes bascule{
+    0%,14%  {background:none;color:var(--ink);}
+    24%,100%{background:var(--ink);color:var(--paper);}
+  }
+  @keyframes basculeInverse{
+    0%,14%  {background:var(--ink);color:var(--paper);}
+    24%,100%{background:none;color:var(--ink);}
+  }
+
+  .boucle{animation-duration:7s;animation-iteration-count:infinite;animation-timing-function:ease-in-out;}
+  .a-doigt{animation-name:tape;}
+  .a-choisi{animation-name:choisi;}
+  .a-entre{animation-name:entre;}
+  .a-remplit{animation-name:remplit;}
+  .a-vide{animation-name:vide;}
+  .a-bascule{animation-name:bascule;}
+  .a-bascule-inv{animation-name:basculeInverse;}
+
+  @media (prefers-reduced-motion: reduce){
+    .boucle{animation:none !important;}
+    .a-doigt{display:none;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+<header>
+  <h1>Vroom&#8201;!<span class="tag">Midi ensemble</span></h1>
+  <p class="sub">Le covoiturage du midi vers le RIA, entre collègues.
+  Tout se joue en six gestes — voici lesquels.</p>
+</header>
+
+<a class="retour" href="/">← Aller au panneau</a>
+
+<!-- 1 -->
+<section class="etape">
+  <h2><span class="num">1</span>Se nommer, une seule fois</h2>
+  <p>La première fois, vous donnez votre prénom. Ensuite, <b>vous vous
+  retrouvez dans la liste et vous cliquez</b> — sur votre poste comme sur votre
+  téléphone. Pas de mot de passe, rien à installer.</p>
+  <div class="scene relatif">
+    <div class="lbl">Choisissez-vous dans la liste</div>
+    <div class="chips">
+      <span class="chip">Léa</span>
+      <span class="chip pris boucle a-choisi">Marc</span>
+      <span class="chip">Sophie</span>
+    </div>
+    <span class="doigt boucle a-doigt" style="left:88px;top:47px;"></span>
+    <div class="message doux boucle a-entre">Vous êtes Marc. Cet appareil vous reconnaîtra.</div>
+  </div>
+</section>
+
+<!-- 2 -->
+<section class="etape">
+  <h2><span class="num">2</span>Dire ce qu'on fait</h2>
+  <p>Deux cas, un seul formulaire : <b>je propose</b> une place dans ma voiture,
+  ou <b>je cherche</b> une place. Départ, arrivée, créneau — et c'est au
+  panneau.</p>
+  <div class="scene">
+    <div class="segmented" style="margin-bottom:11px;">
+      <span class="boucle a-bascule-inv">Je propose</span>
+      <span class="on boucle a-bascule">Je cherche</span>
+    </div>
+    <div class="ligne boucle a-entre">
+      <div><div class="h">12:15</div><div class="k">cherche</div></div>
+      <div>
+        <div class="n">Marc</div>
+        <div class="m">Fréhel → Impôts</div>
+      </div>
+      <span class="badge">Vous</span>
+    </div>
+  </div>
+</section>
+
+<!-- 3 -->
+<section class="etape">
+  <h2><span class="num">3</span>Monter chez quelqu'un</h2>
+  <p>Un trajet vous convient : <b>« Je monte »</b>. La place est comptée tout de
+  suite, et votre prénom s'affiche sous l'annonce. Quand les pastilles sont
+  pleines, la voiture est complète — personne ne se retrouvera planté sur le
+  parking.</p>
+  <div class="scene relatif">
+    <div class="ligne">
+      <div><div class="h">12:00</div><div class="k">conduit</div></div>
+      <div>
+        <div class="n">Sophie</div>
+        <div class="m">Vallès → Rue du parc</div>
+        <div class="pips">
+          <span class="pip on"></span>
+          <span class="pip on boucle a-remplit"></span>
+          <span class="pip"></span>
+        </div>
+        <div class="avec boucle a-entre">Avec Léa, Marc</div>
+      </div>
+      <span class="bouton">Je monte</span>
+    </div>
+    <span class="doigt boucle a-doigt" style="right:22px;top:36px;"></span>
+  </div>
+</section>
+
+<!-- 4 -->
+<section class="etape">
+  <h2><span class="num">4</span>Emmener quelqu'un qui cherche</h2>
+  <p>Une ligne orange, c'est une personne sans voiture. <b>« Je l'emmène »</b>
+  publie votre trajet et la met d'emblée à bord. Vous n'avez rien d'autre à
+  faire.</p>
+  <div class="scene relatif">
+    <div class="ligne">
+      <div><div class="h">12:30</div><div class="k">cherche</div></div>
+      <div>
+        <div class="n">Paul</div>
+        <div class="m">Vallès → Ploufragan</div>
+      </div>
+      <span class="bouton ambre">Je l'emmène</span>
+    </div>
+    <span class="doigt boucle a-doigt" style="right:26px;top:30px;"></span>
+    <div class="ligne boucle a-entre">
+      <div><div class="h">12:30</div><div class="k">conduit</div></div>
+      <div>
+        <div class="n">Vous</div>
+        <div class="m">Vallès → Ploufragan</div>
+        <div class="avec">Avec Paul</div>
+      </div>
+      <span class="badge">Vous</span>
+    </div>
+  </div>
+</section>
+
+<!-- 5 -->
+<section class="etape">
+  <h2><span class="num">5</span>Un seul trajet par jour</h2>
+  <p>On conduit <b>ou</b> on monte — jamais les deux, jamais deux fois. Si vous
+  vous êtes déjà engagé, l'appli vous le rappelle au lieu de vous laisser
+  promettre deux choses. C'est ce qui évite qu'un collègue compte sur une
+  voiture qui ne partira pas.</p>
+  <div class="scene relatif">
+    <div class="ligne">
+      <div><div class="h">12:15</div><div class="k">conduit</div></div>
+      <div><div class="n">Vous</div><div class="m">Fréhel → Impôts</div></div>
+      <span class="badge">Vous</span>
+    </div>
+    <div class="ligne">
+      <div><div class="h">12:30</div><div class="k">conduit</div></div>
+      <div><div class="n">Sophie</div><div class="m">Fréhel → Impôts</div></div>
+      <span class="bouton">Je monte</span>
+    </div>
+    <span class="doigt boucle a-doigt" style="right:22px;bottom:66px;"></span>
+    <div class="message boucle a-entre">Vous conduisez déjà à 12:15. Retirez votre
+    trajet avant de monter avec quelqu'un.</div>
+  </div>
+</section>
+
+<!-- 6 -->
+<section class="etape">
+  <h2><span class="num">6</span>Changer d'avis</h2>
+  <p>Rien n'est définitif. <b>« Je me désiste »</b> rend la place, la croix
+  retire votre annonce. Faites-le dès que vous savez : quelqu'un attend
+  peut-être cette place.</p>
+  <div class="scene relatif">
+    <div class="ligne">
+      <div><div class="h">12:00</div><div class="k">conduit</div></div>
+      <div>
+        <div class="n">Sophie</div>
+        <div class="m">Vallès → Rue du parc</div>
+        <div class="pips">
+          <span class="pip on"></span>
+          <span class="pip boucle a-vide"></span>
+          <span class="pip"></span>
+        </div>
+      </div>
+      <span class="bouton vide">Je me désiste</span>
+    </div>
+    <span class="doigt boucle a-doigt" style="right:30px;top:34px;"></span>
+  </div>
+</section>
+
+<div class="fin">
+  <h2>Deux choses à savoir</h2>
+  <p><b>L'appli ne prévient personne.</b> Elle affiche, elle ne notifie pas. Si
+  vous annulez à la dernière minute, retirez votre annonce <i>et</i> prévenez de
+  vive voix — le rendez-vous se prend sur le parking.</p>
+  <p><b>Elle ne vérifie pas qui vous êtes.</b> C'est une feuille d'inscription
+  affichée au mur, entre collègues qui se connaissent. Si votre prénom est mal
+  écrit, ou si vous voulez sortir de la liste, la ligne « Vous êtes… » en haut
+  du panneau vous le permet.</p>
+</div>
+
+<a class="retour bas" href="/">← Aller au panneau</a>
+
+</div>
+</body>
+</html>

@@ -46,6 +46,20 @@
   .header h1{margin:0;font-size:25px;font-weight:700;letter-spacing:-0.02em;}
   .header .tagline{font-size:13px;font-weight:600;color:var(--teal);}
   .header .sub{margin:5px 0 0;font-size:13px;color:var(--ink-4);}
+  .header .aide{
+    display:inline-block;margin-top:6px;font-size:12.5px;font-weight:600;
+    color:var(--teal-dark);text-decoration:underline;
+  }
+  .bandeau{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    border:1px solid var(--teal);background:var(--teal-soft);border-radius:10px;
+    padding:11px 12px;margin-bottom:16px;
+  }
+  .bandeau a{font-size:13px;font-weight:600;color:var(--teal-dark);line-height:1.4;}
+  .bandeau button{
+    flex:0 0 auto;min-width:44px;min-height:44px;background:none;border:none;
+    color:var(--teal-dark);font-size:15px;cursor:pointer;line-height:1;
+  }
   .header .right{text-align:right;flex:0 0 auto;}
   .header .clock{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;}
   .header .date{font-size:11.5px;color:var(--ink-4);margin-top:3px;text-transform:uppercase;letter-spacing:.06em;}
@@ -261,11 +275,17 @@
         <span class="tagline">Midi ensemble</span>
       </div>
       <p class="sub">Trajets du midi vers le RIA</p>
+      <a class="aide" href="/aide.html">Comment ça marche&#8201;?</a>
     </div>
     <div class="right">
       <div class="clock" id="clock"></div>
       <div class="date" id="today-label"></div>
     </div>
+  </div>
+
+  <div class="bandeau" id="bandeau-aide" hidden>
+    <a href="/aide.html">Première fois&#8201;? La notice se lit en une minute.</a>
+    <button type="button" id="btn-bandeau" aria-label="Masquer ce message">✕</button>
   </div>
 
   <div class="filtres">
@@ -1094,8 +1114,22 @@ btnConfirm.addEventListener('click', async ()=>{
   });
 });
 
+/* Un bandeau à la première visite seulement — et qui s'efface d'un geste.
+   Rien de plus : un écran qui s'impose se referme sans être lu. */
+function bandeauAide(){
+  let vu = false;
+  try{ vu = localStorage.getItem('vroom-aide-vue') === 'oui'; }catch(e){}
+  const el = document.getElementById('bandeau-aide');
+  el.hidden = vu;
+  document.getElementById('btn-bandeau').addEventListener('click', ()=>{
+    el.hidden = true;
+    try{ localStorage.setItem('vroom-aide-vue','oui'); }catch(e){}
+  });
+}
+
 (async function init(){
   majHorloge();
+  bandeauAide();
   setInterval(majHorloge, 30000);
   renderFiltres();
   renderFormChoix();

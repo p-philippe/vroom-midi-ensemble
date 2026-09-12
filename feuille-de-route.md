@@ -435,6 +435,17 @@ extranets inclus. Version en vigueur RGAA 4.1.2 ; RGAA 5 annoncé pour fin 2026.
      Effet de bord utile : `.row.past` n'est plus à `opacity .45` mais sur un
      fond distinct, ce qui règle le défaut de contraste du 6.1.
 
+6.0bis. ✅ **Notice de prise en main — livrée le 12/09/2026.** `public/aide.html` :
+     six gestes, six scènes animées en CSS, sans image ni bibliothèque. Se
+     nommer, publier, monter, emmener, la règle d'un trajet par jour, changer
+     d'avis — puis les deux choses à savoir : l'appli ne notifie personne, et
+     elle ne vérifie pas qui vous êtes.
+     Dans l'appli plutôt qu'à côté : une seule adresse à diffuser. Lien discret
+     en en-tête, et bandeau à la première visite seulement, effaçable d'un
+     geste — un écran qui s'impose se referme sans être lu.
+     Chaque scène est construite pour que l'état **d'arrivée** soit l'état par
+     défaut : sous `prefers-reduced-motion`, la notice reste juste sans jouer.
+
 6.1. Corriger les défauts d'accessibilité relevés à l'audit.
      Fait au lot 1bis : `role="dialog"`, `aria-modal`, piège de focus, fermeture
      par Échap et rendu du focus, `aria-pressed` sur onglets et chips,

@@ -7,6 +7,7 @@ prendront le relais pour l'installer dans leur dispositif.
 ## Ce que c'est
 
 - `public/index.html` — l'appli, une page, sans dépendance ni build
+- `public/aide.html` — la notice : six gestes, six scènes animées en CSS
 - `api/` — quatre fonctions Node : session, annonces, places, demandes
 - `lib/db.js` — pool Postgres, schéma, validation, requête du panneau
 - `lib/session.js` — identification par choix dans la liste, cookies
