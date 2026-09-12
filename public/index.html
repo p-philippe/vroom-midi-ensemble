@@ -371,6 +371,27 @@
   </div>
 </div>
 
+<!-- feuille : c'est vous -->
+<div class="sheet" id="moi-sheet" role="dialog" aria-modal="true" aria-labelledby="moi-title">
+  <div class="grab"></div>
+  <h2 id="moi-title">Votre nom sur le panneau</h2>
+  <p class="recap">Personne ne tient la liste : vous seul corrigez ou retirez
+  votre nom. Et ce qu'on n'a pas revu depuis un mois s'efface tout seul.</p>
+  <div class="field">
+    <label for="m-name">Prénom</label>
+    <input type="text" id="m-name" maxlength="30" autocomplete="given-name">
+    <p class="err" id="err-mname">Indiquez votre prénom.</p>
+  </div>
+  <div class="sheet-actions">
+    <button class="btn-cancel" id="btn-moi-cancel">Annuler</button>
+    <button class="btn-confirm" id="btn-moi-rename">Corriger</button>
+  </div>
+  <div class="sheet-actions" style="margin-top:10px;">
+    <button class="btn-cancel" id="btn-moi-logout">Ce n'est pas moi</button>
+    <button class="btn-cancel" id="btn-moi-remove">Me retirer de la liste</button>
+  </div>
+</div>
+
 <!-- feuille : qui êtes-vous ? -->
 <div class="sheet" id="ident-sheet" role="dialog" aria-modal="true" aria-labelledby="ident-title">
   <div class="grab"></div>
@@ -436,6 +457,7 @@ const sheet = document.getElementById('sheet');
 const takeSheet = document.getElementById('take-sheet');
 const driveSheet = document.getElementById('drive-sheet');
 const identSheet = document.getElementById('ident-sheet');
+const moiSheet = document.getElementById('moi-sheet');
 const backdrop = document.getElementById('backdrop');
 const seatsField = document.getElementById('seats-field');
 const btnConfirm = document.getElementById('btn-confirm');
@@ -490,10 +512,53 @@ function renderMoi(){
   txt.textContent = `Vous êtes ${moi.prenom}.`;
   const btn = document.createElement('button');
   btn.type = 'button';
-  btn.textContent = 'Ce n’est pas vous ?';
-  btn.addEventListener('click', ()=> pendant(btn, deconnecter));
+  btn.textContent = 'Corriger, ou ce n’est pas vous ?';
+  btn.addEventListener('click', openMoi);
   el.appendChild(txt);
   el.appendChild(btn);
+}
+
+function openMoi(){
+  document.getElementById('m-name').value = moi?.prenom || '';
+  setError('m-name','err-mname',false);
+  openSheetEl(moiSheet, document.getElementById('m-name'));
+}
+
+/** Corriger son nom : les annonces déjà publiées suivent, côté serveur. */
+async function renommer(){
+  const nom = document.getElementById('m-name').value.trim();
+  setError('m-name','err-mname', nom.length < 2);
+  if(nom.length < 2) return;
+  await pendant(document.getElementById('btn-moi-rename'), async ()=>{
+    const r = await envoyer('/api/session', 'PUT', { prenom: nom });
+    if(r.code === 409){
+      flash(`Il y a déjà ${r.data.nom} dans la liste. Ajoutez une initiale pour vous distinguer.`);
+      return;
+    }
+    if(!r.ok){ flash("Correction impossible pour l'instant."); return; }
+    moi = { prenom: r.data.prenom };
+    gens = Array.isArray(r.data.gens) ? r.data.gens : gens;
+    renderMoi();
+    closeSheets();
+    etag = null;
+    await rafraichir();
+  });
+}
+
+/** Se retirer : ses trajets et ses places partent avec, sinon un collègue
+    attendrait quelqu'un qui n'existe plus. */
+async function seRetirer(){
+  await pendant(document.getElementById('btn-moi-remove'), async ()=>{
+    const r = await envoyer('/api/session', 'DELETE', { retirer: true });
+    if(!r.ok){ flash("Retrait impossible pour l'instant."); return; }
+    moi = null;
+    gens = Array.isArray(r.data.gens) ? r.data.gens : gens;
+    renderMoi();
+    closeSheets();
+    etag = null;
+    await rafraichir();
+    flash('Vous n’êtes plus dans la liste. Vos trajets du jour ont été retirés.');
+  });
 }
 
 async function deconnecter(){
@@ -948,14 +1013,14 @@ function openSheetEl(el, focus){
 }
 function closeSheets(){
   backdrop.classList.remove('open');
-  [sheet, takeSheet, driveSheet, identSheet].forEach(el => el.classList.remove('open'));
+  [sheet, takeSheet, driveSheet, identSheet, moiSheet].forEach(el => el.classList.remove('open'));
   takeTargetId = null;
   driveTargetId = null;
   if(lastFocus && lastFocus.focus) lastFocus.focus();
   lastFocus = null;
 }
 function feuillesOuvertes(){
-  return [sheet, takeSheet, driveSheet, identSheet].filter(el => el.classList.contains('open'));
+  return [sheet, takeSheet, driveSheet, identSheet, moiSheet].filter(el => el.classList.contains('open'));
 }
 document.addEventListener('keydown', (e)=>{
   const ouverte = feuillesOuvertes()[0];
@@ -999,6 +1064,12 @@ document.getElementById('btn-ident-new').addEventListener('click', ()=>{
   modeNouveau(!enNouveau);
 });
 document.getElementById('btn-ident-confirm').addEventListener('click', confirmIdent);
+document.getElementById('btn-moi-cancel').addEventListener('click', closeSheets);
+document.getElementById('btn-moi-rename').addEventListener('click', renommer);
+document.getElementById('btn-moi-logout').addEventListener('click', (e)=>{
+  closeSheets(); pendant(e.currentTarget, deconnecter);
+});
+document.getElementById('btn-moi-remove').addEventListener('click', seRetirer);
 document.getElementById('btn-cancel').addEventListener('click', closeSheets);
 document.getElementById('btn-take-cancel').addEventListener('click', closeSheets);
 document.getElementById('btn-take-confirm').addEventListener('click', confirmTake);

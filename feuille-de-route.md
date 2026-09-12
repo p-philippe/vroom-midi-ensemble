@@ -306,6 +306,12 @@ bac à sable (cf. 1.4).*
      invitation à ajouter une initiale pour les vrais homonymes.
      Rien n'est vérifié, et c'est assumé : « il n'y a pas d'enjeu de sécurité
      sur cette application ». Niveau d'une feuille d'inscription au mur.
+     **Qui tient la liste ? Personne** — question posée et réglée le même
+     soir. Chacun corrige ou retire son propre nom, et ce qu'on n'a pas revu
+     depuis un mois sort de la liste tout seul, son nom redevenant libre. La
+     ligne reste en base : revenir, c'est se retrouver, pas repartir de zéro.
+     Se retirer annule ses trajets du jour — rester inscrit sous un nom
+     disparu laisserait un collègue attendre un fantôme.
      Le lien magique par courrier a été retiré du code — il figurait au
      commit b282ba5 si on veut l'y reprendre.
      Étape intermédiaire écartée le même soir : La distribution des liens à la main a été

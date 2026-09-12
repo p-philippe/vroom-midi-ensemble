@@ -28,6 +28,13 @@ plus rien à écrire différemment d'un appareil à l'autre. Et s'ajouter sous u
 nom déjà présent est refusé : l'écran renvoie à la liste, ou invite à ajouter
 une initiale quand il s'agit vraiment de deux personnes (« Sophie B. »).
 
+**Personne ne tient cette liste.** Chacun y entre seul, corrige son nom seul,
+et en sort seul — et ce qu'on n'a pas revu depuis un mois s'efface de lui-même,
+son nom redevenant libre. Se retirer emporte ses trajets du jour : rester
+inscrit sous un nom disparu laisserait un collègue attendre un fantôme. Aucun
+de ces gestes ne touche à quelqu'un d'autre : l'identité visée vient du cookie,
+jamais de la requête.
+
 Rien n'est vérifié : qui choisit le nom d'un autre passe pour lui. Assumé le
 12/09/2026 — c'est le niveau d'une feuille d'inscription affichée au mur, et
 il n'y a pas d'enjeu de sécurité sur un covoiturage du midi.
@@ -36,7 +43,7 @@ Le panneau se lit sans s'identifier. On ne la demande qu'au premier geste.
 
 ## Essais
 
-    npm run essais   # 36 scénarios sur un Postgres en mémoire, sans rien installer
+    npm run essais   # 50 scénarios sur un Postgres en mémoire, sans rien installer
     npm run local    # le site sur http://localhost:3000, base vierge à chaque fois
 
 `essais/` s'appuie sur PGlite, un vrai Postgres compilé en WebAssembly : mêmes

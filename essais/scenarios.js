@@ -173,5 +173,45 @@ const complet = await nora.monte(offreSophie.corps.id);
 verifie('la voiture d’une place est complète', complet.statusCode === 409 && complet.corps.erreur === 'complet');
 verifie('et on nomme qui a pris la place', complet.corps.par === 'Paul');
 
+titre('9 · Personne ne tient la liste');
+
+const rene = new Agent('Rene');
+await rene.identifie();
+const corrige = await rene.appelle(session, 'PUT', { body: { prenom: 'René' } });
+verifie('on corrige son propre nom', corrige.statusCode === 200 && corrige.corps.prenom === 'René');
+verifie('l’ancien nom quitte la liste', !corrige.corps.gens.includes('Rene'));
+verifie('le nouveau y est', corrige.corps.gens.includes('René'));
+
+const offreRene = await rene.publie({ type:'offre', site:'Vallès', arrivee:'Rue du parc', heure:'13:00', places:2, note:'' });
+const corrige2 = await rene.appelle(session, 'PUT', { body: { prenom: 'René D.' } });
+verifie('renommer après avoir publié', corrige2.statusCode === 200);
+const vuRene = await rene.panneau();
+verifie('l’annonce déjà publiée suit le nouveau nom',
+  mien(vuRene, offreRene.corps.id)?.prenom === 'René D.');
+
+const collision = await rene.appelle(session, 'PUT', { body: { prenom: 'Sophie' } });
+verifie('on ne prend pas le nom d’un autre', collision.statusCode === 409);
+
+const retrait = await rene.appelle(session, 'DELETE', { body: { retirer: true } });
+verifie('on se retire de la liste', retrait.statusCode === 200);
+verifie('et on n’y est plus', !retrait.corps.gens.includes('René D.'));
+const apresRetrait = await rene.panneau();
+verifie('ses trajets partent avec lui', !mien(apresRetrait, offreRene.corps.id));
+
+const anonymeApres = await new Agent('X').appelle(session, 'DELETE', { body: { retirer: true } });
+verifie('se retirer sans être identifié est refusé', anonymeApres.statusCode === 401);
+
+titre('10 · Un mois sans revenir, et l’on sort de la liste');
+const vieux = new Agent('Fantome');
+await vieux.identifie();
+await (await import('../lib/db.js')).query(
+  `update personnes set vue_le = now() - interval '40 days' where lower(nom)='fantome'`);
+const listeApres = (await new Agent('Y').appelle(session, 'GET')).corps.gens;
+verifie('il n’encombre plus la liste', !listeApres.includes('Fantome'));
+const repris = await new Agent('Fantome').identifie(true);
+verifie('et son nom est redevenu libre', repris.statusCode === 200, JSON.stringify(repris.corps));
+verifie('mais c’est bien la même ligne qui reprend',
+  (await new Agent('Z').appelle(session, 'GET')).corps.gens.filter(g=>g==='Fantome').length === 1);
+
 console.log(`\n${ok} vérifications passées, ${ko} en échec.\n`);
 process.exit(ko ? 1 : 0);
