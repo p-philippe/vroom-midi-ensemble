@@ -78,8 +78,10 @@ const retape = await new Agent('philippe').identifie(true);
 verifie('se retaper au lieu de se choisir est refusé',
   retape.statusCode === 409 && retape.corps.erreur === 'nom_pris');
 
-const philippeTel = new Agent('Philippe');
-await philippeTel.identifie(false);            // je me choisis dans la liste
+const philippeTel = new Agent('philippe');
+const choix = await philippeTel.identifie(false);   // je me choisis dans la liste
+verifie('se choisir renvoie le nom de la liste, pas celui tapé',
+  choix.corps.prenom === 'Philippe', choix.corps.prenom);
 const pub = await philippe.publie({ type:'offre', site:'Vallès', arrivee:'Impôts', heure:'12:15', places:2, note:'' });
 verifie('publication depuis le poste', pub.statusCode === 201);
 const vuTel = await philippeTel.panneau();

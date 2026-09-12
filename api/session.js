@@ -36,9 +36,9 @@ export default async function handler(req, res){
         if(existant) return json(res, 409, { erreur:'nom_pris', nom: existant });
       }
 
-      const jeton = await ouvreSessionPour(nom);
-      poseCookie(req, res, jeton);
-      return json(res, 200, { connecte: true, prenom: nom, gens: await listeGens() });
+      const ouverte = await ouvreSessionPour(nom);
+      poseCookie(req, res, ouverte.jeton);
+      return json(res, 200, { connecte: true, prenom: ouverte.prenom, gens: await listeGens() });
     }
 
     if(req.method === 'DELETE'){
