@@ -103,6 +103,11 @@ dernière place vient d'être prise par Léa. Il reste 2 trajets à ria1. »
   identité. Assumé pour un test entre volontaires ; à reprendre par la DSI avec
   le SSO agent de l'État si le service s'élargit (4.4bis).
 
+- **Deux polices chargées depuis Google Fonts** (Public Sans, IBM Plex Mono).
+  Sur un intranet coupé d'internet elles ne descendront pas : la pile de repli
+  système prend le relais, la mise en page tient, le rendu change un peu. À
+  héberger localement le jour où le site passe en interne.
+
 - **Départs par quart d'heure**, de 12:00 à 13:00 inclus. Pour changer la
   grille : `CRENEAUX` dans `lib/db.js` **et** dans `public/index.html`, plus
   les `<option>` des deux formulaires.

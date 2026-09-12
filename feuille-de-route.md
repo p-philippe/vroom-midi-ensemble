@@ -399,12 +399,22 @@ outil interne d'un organisme public entre dans le champ du RGAA, intranets et
 extranets inclus. Version en vigueur RGAA 4.1.2 ; RGAA 5 annoncé pour fin 2026.
 [accessibilite.numerique.gouv.fr, 08/09/2026]*
 
+6.0. ✅ **Interface redessinée le 12/09/2026** (Claude Design). Panneau façon
+     tableau de gare : heure en chasse fixe, mention « conduit » / « cherche »,
+     places figurées par des pastilles pleines ou vides, horloge en en-tête.
+     Les créneaux et le nombre de places se prennent en boutons — un geste au
+     lieu d'une liste déroulante. « Je l'emmène » passe en ambre, distinct de
+     « Je monte ».
+     Effet de bord utile : `.row.past` n'est plus à `opacity .45` mais sur un
+     fond distinct, ce qui règle le défaut de contraste du 6.1.
+
 6.1. Corriger les défauts d'accessibilité relevés à l'audit.
      Fait au lot 1bis : `role="dialog"`, `aria-modal`, piège de focus, fermeture
      par Échap et rendu du focus, `aria-pressed` sur onglets et chips,
      `aria-live` sur le panneau, cibles à 44 px, erreurs de saisie annoncées
      par un texte et non par la seule couleur.
-     Reste : contraste de `.row.past` (opacity .45), audit complet.
+     ~~Reste : contraste de `.row.past` (opacity .45)~~ — réglé au 6.0.
+     Reste : audit complet.
 6.2. Audit RGAA, déclaration d'accessibilité, mention de conformité, schéma
      pluriannuel. Montant de la sanction : à vérifier.
 6.3. Afficher la mention d'information RGPD (texte issu de `conformite-rgpd.md`)
