@@ -296,7 +296,19 @@ bac à sable (cf. 1.4).*
      un lien inventé ne pose rien. Le même agent sur deux appareils est une
      seule personne — et retire depuis son téléphone ce qu'il a publié depuis
      son poste, ce qui était la limite du 4.4.
-     **Amendé le soir même.** La distribution des liens à la main a été
+     **Amendé deux fois le soir même, jusqu'à la bonne forme.** Version
+     retenue : **on se choisit dans la liste des gens déjà connus.** La
+     première fois on donne son prénom ; ensuite, sur tout appareil, on se
+     retrouve et on clique. Ni mot de passe, ni courrier, ni installation.
+     C'est ce geste qui règle le doublon, qui était la vraie demande : rien
+     à retaper, donc rien à écrire autrement d'un appareil à l'autre.
+     S'ajouter sous un nom déjà pris est refusé, avec renvoi à la liste ou
+     invitation à ajouter une initiale pour les vrais homonymes.
+     Rien n'est vérifié, et c'est assumé : « il n'y a pas d'enjeu de sécurité
+     sur cette application ». Niveau d'une feuille d'inscription au mur.
+     Le lien magique par courrier a été retiré du code — il figurait au
+     commit b282ba5 si on veut l'y reprendre.
+     Étape intermédiaire écartée le même soir : La distribution des liens à la main a été
      écartée par Philippe : elle fait de lui le passage obligé de chaque
      inscription. Sans relais de courrier, l'adresse saisie ouvre donc la
      session **sur parole**, et le lien de confirmation se rallume tout seul

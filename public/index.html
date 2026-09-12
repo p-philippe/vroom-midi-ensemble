@@ -223,12 +223,6 @@
   .note-drop{margin:0 0 14px;font-size:12.5px;font-weight:600;color:var(--amber);line-height:1.45;}
 
   /* identification */
-  .ident-ok{
-    margin:0 0 14px;padding:12px;border:1px solid var(--teal);
-    background:var(--teal-soft);border-radius:10px;
-    font-size:12.5px;color:var(--teal-dark);line-height:1.45;
-  }
-  .ident-ok a{color:var(--teal-dark);word-break:break-all;}
   .moi{
     display:flex;align-items:center;justify-content:space-between;gap:10px;
     padding:0 2px 10px;font-size:12px;color:var(--ink-4);
@@ -377,26 +371,23 @@
   </div>
 </div>
 
-<!-- feuille : on se connaît ? -->
+<!-- feuille : qui êtes-vous ? -->
 <div class="sheet" id="ident-sheet" role="dialog" aria-modal="true" aria-labelledby="ident-title">
   <div class="grab"></div>
-  <h2 id="ident-title">On se connaît&#8201;?</h2>
+  <h2 id="ident-title">Qui êtes-vous&#8201;?</h2>
   <p class="recap" id="ident-recap"></p>
-  <div class="field">
-    <label for="i-name">Prénom</label>
+  <div class="field" id="gens-field">
+    <span class="lbl" id="lbl-gens">Choisissez-vous dans la liste</span>
+    <div class="site-filter" id="gens" role="group" aria-labelledby="lbl-gens"></div>
+  </div>
+  <div class="field" id="nouveau-field" hidden>
+    <label for="i-name">Votre prénom</label>
     <input type="text" id="i-name" placeholder="Ex. Philippe" maxlength="30" autocomplete="given-name">
     <p class="err" id="err-iname">Indiquez votre prénom.</p>
   </div>
-  <div class="field">
-    <label for="i-mail">Adresse mail</label>
-    <input type="email" id="i-mail" placeholder="vous@exemple.fr" maxlength="120"
-           autocomplete="email" inputmode="email">
-    <p class="err" id="err-imail">Vérifiez cette adresse.</p>
-  </div>
-  <div class="ident-ok" id="ident-ok" hidden></div>
-  <div class="sheet-actions" id="ident-actions">
-    <button class="btn-cancel" id="btn-ident-cancel">Annuler</button>
-    <button class="btn-confirm" id="btn-ident-confirm">Recevoir mon lien</button>
+  <div class="sheet-actions">
+    <button class="btn-cancel" id="btn-ident-new">Je n'y suis pas</button>
+    <button class="btn-confirm" id="btn-ident-confirm">Entrer</button>
   </div>
 </div>
 
@@ -418,7 +409,7 @@ const PLACES_CHOIX = [1,2,3,4];
    lit. Ici, on sait seulement s'il y en a une, pour la demander au bon moment :
    au premier geste, jamais à l'arrivée. Le panneau se lit sans rien donner. */
 let moi = null;              // { prenom } une fois identifié
-let mailBranche = true;      // le serveur sait-il poster un courrier
+let gens = [];               // les personnes déjà connues, pour s'y choisir
 let apresIdent = null;       // le geste interrompu, repris après identification
 
 let annonces = [];
@@ -485,7 +476,7 @@ async function litSession(){
     if(!r.ok) return;
     const d = await r.json();
     moi = d.connecte ? { prenom: d.prenom } : null;
-    mailBranche = d.mail !== false;
+    gens = Array.isArray(d.gens) ? d.gens : [];
   }catch(e){ /* réseau : on reste tel quel, le panneau se lit quand même */ }
   renderMoi();
 }
@@ -525,69 +516,67 @@ function exigeIdentite(action){
 }
 
 function openIdent(){
-  document.getElementById('ident-recap').textContent = mailBranche
-    ? "Pas de mot de passe : vous recevez un lien, vous cliquez une fois, et cet appareil vous reconnaît ensuite. L'adresse est celle que vous voulez — professionnelle ou personnelle."
-    : "Pas de mot de passe. Votre adresse sert à vous reconnaître d'une fois sur l'autre, et d'un appareil à l'autre : mettez la même sur votre téléphone et sur votre poste.";
-  document.getElementById('btn-ident-confirm').textContent =
-    mailBranche ? 'Recevoir mon lien' : 'Entrer';
-  document.getElementById('i-name').value = moi?.prenom || '';
-  document.getElementById('i-mail').value = '';
-  document.getElementById('ident-ok').hidden = true;
-  document.getElementById('ident-actions').hidden = false;
-  setError('i-name','err-iname',false);
-  setError('i-mail','err-imail',false);
-  openSheetEl(identSheet, document.getElementById('i-name'));
+  document.getElementById('ident-recap').textContent = gens.length
+    ? "Pas de mot de passe. Retrouvez-vous dans la liste : c'est ce qui évite d'apparaître deux fois quand vous passez du poste au téléphone."
+    : "Pas de mot de passe. Donnez votre prénom une fois ; ensuite vous vous retrouverez dans la liste, sur n'importe quel appareil.";
+  modeNouveau(gens.length === 0);
+  renderGens();
+  openSheetEl(identSheet, identSheet.querySelector('#gens button, #i-name'));
+}
+
+/* Deux modes dans la même feuille : se choisir, ou s'ajouter. */
+function modeNouveau(on){
+  document.getElementById('gens-field').hidden = on || gens.length === 0;
+  document.getElementById('nouveau-field').hidden = !on;
+  document.getElementById('btn-ident-confirm').hidden = !on;
+  const retour = document.getElementById('btn-ident-new');
+  retour.textContent = on ? (gens.length ? 'Retour à la liste' : 'Annuler') : "Je n'y suis pas";
+  if(on){
+    document.getElementById('i-name').value = '';
+    setError('i-name','err-iname',false);
+    document.getElementById('i-name').focus();
+  }
+}
+
+function renderGens(){
+  const el = document.getElementById('gens');
+  el.innerHTML = '';
+  gens.forEach(nom => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'site-chip';
+    b.textContent = nom;
+    // Un seul geste : on se choisit, on est entré.
+    b.addEventListener('click', ()=> pendant(b, ()=> entre(nom, false)));
+    el.appendChild(b);
+  });
 }
 
 async function confirmIdent(){
-  const prenom = document.getElementById('i-name').value.trim();
-  const email = document.getElementById('i-mail').value.trim();
-  const mailOk = /^[^@\s]+@[^@\s.]+(\.[^@\s.]+)+$/.test(email);
-  setError('i-name','err-iname',!prenom);
-  setError('i-mail','err-imail',!mailOk);
-  if(!prenom || !mailOk) return;
+  const nom = document.getElementById('i-name').value.trim();
+  setError('i-name','err-iname', nom.length < 2);
+  if(nom.length < 2) return;
+  await pendant(document.getElementById('btn-ident-confirm'), ()=> entre(nom, true));
+}
 
-  await pendant(document.getElementById('btn-ident-confirm'), async ()=>{
-    const r = await envoyer('/api/session', 'POST', { email, prenom });
-    if(r.code === 429){
-      flash('Plusieurs liens ont déjà été demandés. Attendez un quart d’heure.');
-      return;
-    }
-    if(!r.ok){ flash("Identification impossible pour l'instant."); return; }
+/** Se choisir (ou s'ajouter), puis reprendre le geste interrompu. */
+async function entre(nom, nouveau){
+  const r = await envoyer('/api/session', 'POST', { prenom: nom, nouveau });
+  if(r.code === 409 && r.data.erreur === 'nom_pris'){
+    flash(`Il y a déjà ${r.data.nom} dans la liste. Choisissez-vous dedans — ou ajoutez une initiale, « ${r.data.nom} B. », si ce n'est pas vous.`);
+    modeNouveau(false);
+    return;
+  }
+  if(!r.ok){ flash("Identification impossible pour l'instant."); return; }
 
-    // Sans courrier, la session est ouverte d'emblée : on referme et on
-    // reprend le geste que l'identification avait interrompu.
-    if(r.data.connecte){
-      moi = { prenom: r.data.prenom };
-      renderMoi();
-      closeSheets();
-      etag = null;
-      await rafraichir();
-      const suite = apresIdent; apresIdent = null;
-      if(suite) suite();
-      return;
-    }
-
-    document.getElementById('ident-actions').hidden = true;
-    const ok = document.getElementById('ident-ok');
-    ok.hidden = false;
-    ok.innerHTML = '';
-    const p = document.createElement('p');
-    p.style.margin = '0';
-    if(r.data.lien){
-      // Réglage de développement local : le lien revient au lieu de partir.
-      p.textContent = 'Lien prêt (mode local) : ';
-      const a = document.createElement('a');
-      a.href = r.data.lien;
-      a.textContent = 'ouvrir ma session';
-      p.appendChild(a);
-    }else if(r.data.poste){
-      p.textContent = `Un lien vient de partir vers ${email}. Ouvrez-le depuis cet appareil : il vaut vingt minutes.`;
-    }else{
-      p.textContent = "L'envoi de courrier n'est pas encore branché sur ce site. Votre lien a été noté côté serveur — demandez-le à l'organisateur du test.";
-    }
-    ok.appendChild(p);
-  });
+  moi = { prenom: r.data.prenom };
+  gens = Array.isArray(r.data.gens) ? r.data.gens : gens;
+  renderMoi();
+  closeSheets();
+  etag = null;
+  await rafraichir();
+  const suite = apresIdent; apresIdent = null;
+  if(suite) suite();
 }
 
 /* --- serveur --------------------------------------------------------------- */
@@ -1004,8 +993,10 @@ function openSheet(){
   openSheetEl(sheet, document.getElementById('f-site'));
 }
 document.getElementById('fab-add').addEventListener('click', ()=> exigeIdentite(openSheet));
-document.getElementById('btn-ident-cancel').addEventListener('click', ()=>{
-  apresIdent = null; closeSheets();
+document.getElementById('btn-ident-new').addEventListener('click', ()=>{
+  const enNouveau = !document.getElementById('nouveau-field').hidden;
+  if(enNouveau && !gens.length){ apresIdent = null; closeSheets(); return; }
+  modeNouveau(!enNouveau);
 });
 document.getElementById('btn-ident-confirm').addEventListener('click', confirmIdent);
 document.getElementById('btn-cancel').addEventListener('click', closeSheets);

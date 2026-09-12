@@ -9,34 +9,34 @@ prendront le relais pour l'installer dans leur dispositif.
 - `public/index.html` — l'appli, une page, sans dépendance ni build
 - `api/` — quatre fonctions Node : session, annonces, places, demandes
 - `lib/db.js` — pool Postgres, schéma, validation, requête du panneau
-- `lib/session.js` — identification par lien magique, cookies, envoi du courrier
+- `lib/session.js` — identification par choix dans la liste, cookies
 - `db/schema.sql` — le schéma, à passer une fois
 - `essais/` — les scénarios, rejoués sur un Postgres en mémoire
 
 Pas de framework, pas de bundler, pas de dépendance propriétaire : une base
-Postgres derrière un `DATABASE_URL`, un relais de courrier derrière un
-`SMTP_URL`. La reprise par la DSI est un redéploiement, pas une réécriture.
+Postgres derrière un `DATABASE_URL`. La reprise par la DSI est un
+redéploiement, pas une réécriture.
 
 ## Qui est qui
 
-Pas de mot de passe. L'agent donne son prénom et l'adresse qu'il veut, et il
-est connu : cet appareil le reconnaît ensuite pour un an. L'adresse est la clé
-d'identité — la même sur le téléphone et sur le poste, et c'est la même
-personne, qui retrouve ses annonces des deux côtés.
+Pas de mot de passe, pas de courrier, rien à installer. La première fois, on
+donne son prénom. Ensuite, sur n'importe quel appareil, **on se retrouve dans
+la liste et on clique** : un geste, et cet appareil vous reconnaît pour un an.
 
-**L'adresse n'est pas vérifiée** tant qu'aucun relais de courrier n'est
-configuré. Le niveau de confiance est celui d'une feuille d'inscription
-affichée au mur : on peut y écrire le nom d'un autre. Décidé le 12/09/2026,
-pour que personne n'ait à distribuer les accès un par un.
+C'est ce geste qui empêche les doublons. Il n'y a plus rien à retaper, donc
+plus rien à écrire différemment d'un appareil à l'autre. Et s'ajouter sous un
+nom déjà présent est refusé : l'écran renvoie à la liste, ou invite à ajouter
+une initiale quand il s'agit vraiment de deux personnes (« Sophie B. »).
 
-**Poser `SMTP_URL` rallume la vérification** sans toucher au code : l'agent
-reçoit alors un lien à usage unique, valable vingt minutes, et clique.
+Rien n'est vérifié : qui choisit le nom d'un autre passe pour lui. Assumé le
+12/09/2026 — c'est le niveau d'une feuille d'inscription affichée au mur, et
+il n'y a pas d'enjeu de sécurité sur un covoiturage du midi.
 
 Le panneau se lit sans s'identifier. On ne la demande qu'au premier geste.
 
 ## Essais
 
-    npm run essais   # 35 scénarios sur un Postgres en mémoire, sans rien installer
+    npm run essais   # 36 scénarios sur un Postgres en mémoire, sans rien installer
     npm run local    # le site sur http://localhost:3000, base vierge à chaque fois
 
 `essais/` s'appuie sur PGlite, un vrai Postgres compilé en WebAssembly : mêmes
@@ -57,17 +57,7 @@ offre gratuite). Le schéma se crée au premier appel.
 2. **Passer le schéma** : le contenu de `db/schema.sql`.
 3. **Variables d'environnement** :
    - `DATABASE_URL` — chaîne de connexion (obligatoire)
-   - `SITE_URL` — l'adresse publique du site, `https://…`, **sans barre
-     finale**. À poser en production : à défaut, l'adresse du lien est déduite
-     de l'en-tête `Host`, que l'appelant contrôle, et un lien demandé pour
-     l'adresse d'un collègue pourrait pointer ailleurs
-   - `SMTP_URL` — le relais de courrier, `smtp://utilisateur:motdepasse@hôte:587`.
-     Absent, le lien part dans le journal du serveur et se distribue à la main
-   - `SMTP_FROM` — l'expéditeur affiché, ex. `Vroom ! <vroom@exemple.fr>`
    - `DATABASE_SSL=off` — seulement pour un Postgres local sans TLS
-   - `LIENS_EN_CLAIR=on` — **développement local uniquement**. Renvoie le lien
-     au client au lieu de l'envoyer : sur un site ouvert, ce réglage laisse
-     n'importe qui se connecter sous n'importe quelle adresse
 4. **Déployer** : `vercel` à la racine, ou l'import du dépôt depuis l'interface.
 
 En local : `npm install`, puis `npm run local` — ou `vercel dev` si vous avez
@@ -102,10 +92,10 @@ dernière place vient d'être prise par Léa. Il reste 2 trajets à ria1. »
 
 ## Limites connues
 
-- **L'adresse n'est pas vérifiée**, faute de relais de courrier : qui saisit
-  l'adresse d'un collègue passe pour lui. Assumé pour un test entre
-  volontaires. Deux marches au-dessus, dans l'ordre : `SMTP_URL` pour le lien
-  de confirmation, puis le SSO agent de l'État à la reprise DSI (4.4bis).
+- **Rien ne vérifie qui vous êtes** : la liste est ouverte, on peut s'y
+  choisir sous le nom d'un autre. Assumé. La marche au-dessus, le jour où le
+  service sortirait du cercle des volontaires, est le SSO agent de l'État —
+  à la reprise DSI (4.4bis).
 
 - **Deux polices chargées depuis Google Fonts** (Public Sans, IBM Plex Mono).
   Sur un intranet coupé d'internet elles ne descendront pas : la pile de repli

@@ -1,64 +1,44 @@
 import { json, configManquante } from '../lib/db.js';
 import {
-  normaliseEmail, emailPlausible, personneCourante, envoieLien, ouvreSession,
-  ouvreSessionSansPreuve, fermeSession, poseCookie, retireCookie,
-  mailConfigure, verificationActive
+  nomPropre, nomValide, nomExiste, personneCourante, ouvreSessionPour,
+  fermeSession, poseCookie, retireCookie, listeGens
 } from '../lib/session.js';
 
 /**
  * Identification sans mot de passe (4.4bis).
  *
- *   GET  /api/session?jeton=…  le clic sur le lien : pose la session, renvoie
- *                              à l'accueil, et le jeton disparaît de la barre
- *                              d'adresse plutôt que de rester dans l'historique
- *   GET  /api/session          qui suis-je
- *   POST /api/session          { email, prenom } — envoie le lien
- *   DELETE /api/session        se déconnecter de cet appareil
+ *   GET    /api/session   qui suis-je, et qui d'autre est connu
+ *   POST   /api/session   { prenom, nouveau } — se choisir, ou s'ajouter
+ *   DELETE /api/session   ce n'est pas moi
  */
 export default async function handler(req, res){
   if(configManquante()) return json(res, 503, { erreur:'base_absente' });
   try{
     if(req.method === 'GET'){
-      const jetonLien = req.query?.jeton;
-      if(jetonLien){
-        const session = await ouvreSession(Array.isArray(jetonLien) ? jetonLien[0] : jetonLien);
-        if(session) poseCookie(req, res, session);
-        res.statusCode = 302;
-        res.setHeader('location', session ? '/' : '/?ident=perime');
-        res.setHeader('cache-control', 'no-store');
-        return res.end();
-      }
       const moi = await personneCourante(req);
       res.setHeader('cache-control', 'no-store');
       return json(res, 200, {
         connecte: !!moi,
         prenom: moi?.prenom || null,
-        // L'écran s'adapte : promettre un mail qui n'arrivera pas serait pire
-        // que de dire qu'il n'y en a pas.
-        mail: verificationActive()
+        gens: await listeGens()
       });
     }
 
     if(req.method === 'POST'){
-      const c = req.body || {};
-      const email = normaliseEmail(c.email);
-      const prenom = typeof c.prenom === 'string' ? c.prenom.trim() : '';
-      const err = [];
-      if(!emailPlausible(email)) err.push('email');
-      if(prenom.length < 1 || prenom.length > 30) err.push('prenom');
-      if(err.length) return json(res, 400, { erreur:'champs_invalides', champs: err });
+      const nom = nomPropre((req.body || {}).prenom);
+      if(!nomValide(nom)) return json(res, 400, { erreur:'champs_invalides', champs:['prenom'] });
 
-      // Sans courrier possible, l'adresse ouvre la session sur parole
-      // (4.4bis, décision du 12/09/2026). Poser SMTP_URL rallume le lien.
-      if(!verificationActive()){
-        const jeton = await ouvreSessionSansPreuve(email, prenom);
-        poseCookie(req, res, jeton);
-        return json(res, 200, { connecte: true, prenom });
+      // S'ajouter alors que le nom existe déjà, c'est très probablement se
+      // retaper au lieu de se choisir : le doublon qu'on veut éviter. On
+      // renvoie la main plutôt que de créer une seconde personne.
+      if((req.body || {}).nouveau){
+        const existant = await nomExiste(nom);
+        if(existant) return json(res, 409, { erreur:'nom_pris', nom: existant });
       }
 
-      const issue = await envoieLien(req, email, prenom);
-      if(!issue.ok) return json(res, 429, { erreur: issue.erreur });
-      return json(res, 200, { envoye: true, poste: issue.poste, lien: issue.lien });
+      const jeton = await ouvreSessionPour(nom);
+      poseCookie(req, res, jeton);
+      return json(res, 200, { connecte: true, prenom: nom, gens: await listeGens() });
     }
 
     if(req.method === 'DELETE'){

@@ -1,6 +1,4 @@
 process.env.DATABASE_URL = 'memoire';
-process.env.LIENS_EN_CLAIR = 'on';     // le lien revient au lieu de partir
-process.env.SITE_URL = 'http://essai.local';
 
 // Chargement dynamique, et pas par goût : les `import` sont hissés au-dessus
 // des lignes ci-dessus, et `lib/db.js` lit DATABASE_URL à son chargement.
@@ -23,7 +21,7 @@ function reponse(){
 
 /** Un agent, c'est un navigateur : il porte son cookie et rien d'autre. */
 class Agent{
-  constructor(prenom, email){ this.prenom = prenom; this.email = email; this.cookie = null; }
+  constructor(prenom){ this.prenom = prenom; this.cookie = null; }
 
   async appelle(handler, method, { body = {}, query = {} } = {}){
     const req = {
@@ -37,14 +35,9 @@ class Agent{
     return res;
   }
 
-  /** Le parcours complet : je demande un lien, je clique, je suis connu. */
-  async identifie(){
-    const envoi = await this.appelle(session, 'POST', { body: { email: this.email, prenom: this.prenom } });
-    const lien = envoi.corps.lien;
-    const jeton = new URL(lien).searchParams.get('jeton');
-    const clic = await this.appelle(session, 'GET', { query: { jeton } });
-    this.dernierJeton = jeton;
-    return clic;
+  /** Se choisir dans la liste, ou s'y ajouter la première fois. */
+  identifie(nouveau = true){
+    return this.appelle(session, 'POST', { body: { prenom: this.prenom, nouveau } });
   }
 
   panneau(){ return this.appelle(annonces, 'GET'); }
@@ -68,26 +61,25 @@ const mien = (p, id) => p.corps.annonces.find(a => a.id === id);
 /* ========================================================================= */
 titre('1 · Identification sans mot de passe (4.4bis)');
 
-const philippe = new Agent('Philippe', 'ph.payet@exemple.fr');
-const clic = await philippe.identifie();
-verifie('le clic sur le lien renvoie à l’accueil', clic.statusCode === 302 && clic.entetes.location === '/');
-verifie('le cookie est posé, httpOnly', /HttpOnly/i.test(clic.entetes['set-cookie'] || ''));
+const philippe = new Agent('Philippe');
+const entree = await philippe.identifie();
+verifie('s’ajouter connecte aussitôt', entree.corps.connecte === true && entree.corps.prenom === 'Philippe');
+verifie('le cookie est posé, httpOnly', /HttpOnly/i.test(entree.entetes['set-cookie'] || ''));
 
 const qui = await philippe.appelle(session, 'GET');
 verifie('le serveur me reconnaît', qui.corps.connecte === true && qui.corps.prenom === 'Philippe');
+verifie('et me propose dans la liste', qui.corps.gens.includes('Philippe'));
 
-// Rejouer le même lien : un seul usage.
-const rejoue = new Agent('Voleur', 'x@exemple.fr');
-const vol = await rejoue.appelle(session, 'GET', { query: { jeton: philippe.dernierJeton } });
-verifie('un lien ne sert qu’une fois', vol.statusCode === 302 && vol.entetes.location === '/?ident=perime');
-verifie('et ne pose aucune session', !vol.entetes['set-cookie']);
+const trop = await new Agent('P').identifie();
+verifie('un nom d’une lettre est refusé', trop.statusCode === 400);
 
-const inventé = await rejoue.appelle(session, 'GET', { query: { jeton: 'x'.repeat(43) } });
-verifie('un jeton inventé ne pose rien', !inventé.entetes['set-cookie']);
+titre('2 · Le doublon, c’est ce qu’on veut éviter');
+const retape = await new Agent('philippe').identifie(true);
+verifie('se retaper au lieu de se choisir est refusé',
+  retape.statusCode === 409 && retape.corps.erreur === 'nom_pris');
 
-titre('2 · Le même agent, deux appareils — la limite levée du 4.4');
-const philippeTel = new Agent('Philippe', 'ph.payet@exemple.fr');
-await philippeTel.identifie();
+const philippeTel = new Agent('Philippe');
+await philippeTel.identifie(false);            // je me choisis dans la liste
 const pub = await philippe.publie({ type:'offre', site:'Vallès', arrivee:'Impôts', heure:'12:15', places:2, note:'' });
 verifie('publication depuis le poste', pub.statusCode === 201);
 const vuTel = await philippeTel.panneau();
@@ -95,10 +87,14 @@ verifie('le téléphone voit l’annonce comme sienne', mien(vuTel, pub.corps.id
 const retraitTel = await philippeTel.retire(pub.corps.id);
 verifie('et peut la retirer depuis le téléphone', retraitTel.statusCode === 200);
 
+const gens = (await philippe.appelle(session, 'GET')).corps.gens;
+verifie('une seule personne en base, pas deux',
+  gens.filter(g => g.toLowerCase() === 'philippe').length === 1, JSON.stringify(gens));
+
 titre('3 · Le panneau ne laisse plus fuiter d’identifiant');
-const sophie = new Agent('Sophie', 'sophie@exemple.fr');  await sophie.identifie();
-const lea    = new Agent('Léa',    'lea@exemple.fr');     await lea.identifie();
-const marc   = new Agent('Marc',   'marc@exemple.fr');    await marc.identifie();
+const sophie = new Agent('Sophie');  await sophie.identifie();
+const lea    = new Agent('Léa');     await lea.identifie();
+const marc   = new Agent('Marc');    await marc.identifie();
 
 const offreSophie = await sophie.publie({ type:'offre', site:'Vallès', arrivee:'Impôts', heure:'12:15', places:1, note:'' });
 const vuParLea = await lea.panneau();
@@ -109,7 +105,7 @@ verifie('l’annonce de Sophie n’est pas « mienne » pour Léa', mien(vuParLe
 
 const volRetrait = await lea.retire(offreSophie.corps.id);
 verifie('Léa ne peut pas retirer l’annonce de Sophie', volRetrait.statusCode === 409);
-const anonyme = new Agent('?', '?@x.fr');
+const anonyme = new Agent('Personne');
 const vuAnonyme = await anonyme.panneau();
 verifie('le panneau se lit sans être identifié', vuAnonyme.statusCode === 200);
 verifie('sans rien y voir de personnel', !JSON.stringify(vuAnonyme.corps).includes('"personne"'));
@@ -143,7 +139,7 @@ const m3 = await lea.monte(offreMarc.corps.id);
 verifie('et peut alors monter ailleurs', m3.statusCode === 201);
 
 titre('6 · Une demande n’est pas un engagement (1bis.6)');
-const paul = new Agent('Paul', 'paul@exemple.fr'); await paul.identifie();
+const paul = new Agent('Paul'); await paul.identifie();
 const dem = await paul.publie({ type:'demande', site:'Vallès', arrivee:'Impôts', heure:'12:15', places:1, note:'' });
 verifie('Paul publie une demande', dem.statusCode === 201);
 const mPaul = await paul.monte(offreSophie.corps.id);
@@ -152,9 +148,9 @@ const apres = await paul.panneau();
 verifie('sa demande disparaît du panneau', !mien(apres, dem.corps.id));
 
 titre('7 · « Je l’emmène » (1bis.8)');
-const chloe = new Agent('Chloé', 'chloe@exemple.fr'); await chloe.identifie();
+const chloe = new Agent('Chloé'); await chloe.identifie();
 const demChloe = await chloe.publie({ type:'demande', site:'Fréhel', arrivee:'Ploufragan', heure:'12:30', places:1, note:'' });
-const hugo = new Agent('Hugo', 'hugo@exemple.fr'); await hugo.identifie();
+const hugo = new Agent('Hugo'); await hugo.identifie();
 const emm = await hugo.emmene({ demande_id: demChloe.corps.id, heure:'12:30', places:2 });
 verifie('Hugo publie et embarque Chloé', emm.statusCode === 201);
 const vuChloe = await chloe.panneau();
@@ -164,42 +160,16 @@ verifie('sa demande a disparu', !mien(vuChloe, demChloe.corps.id));
 verifie('les passagers n’exposent qu’un prénom',
   JSON.stringify(offreHugo.passagers) === JSON.stringify([{ prenom:'Chloé', moi:true }]));
 
-const emm2 = await new Agent('Iris','iris@exemple.fr');
+const emm2 = await new Agent('Iris');
 await emm2.identifie();
 const tardif = await emm2.emmene({ demande_id: demChloe.corps.id, heure:'12:30', places:2 });
 verifie('un second conducteur arrive trop tard', tardif.statusCode === 409 && tardif.corps.erreur === 'deja_pourvue');
 
 titre('8 · La capacité reste tenue par la base (4.3)');
-const nora = new Agent('Nora','nora@exemple.fr'); await nora.identifie();
+const nora = new Agent('Nora'); await nora.identifie();
 const complet = await nora.monte(offreSophie.corps.id);
 verifie('la voiture d’une place est complète', complet.statusCode === 409 && complet.corps.erreur === 'complet');
 verifie('et on nomme qui a pris la place', complet.corps.par === 'Paul');
-
-titre('9 · Sans relais de courrier : l’adresse ouvre la session (4.4bis)');
-// Ce que voit la production aujourd'hui : ni SMTP_URL, ni LIENS_EN_CLAIR.
-delete process.env.LIENS_EN_CLAIR;
-
-const zoe = new Agent('Zoé', 'zoe@exemple.fr');
-const entree = await zoe.appelle(session, 'POST', { body: { email: zoe.email, prenom: 'Zoé' } });
-verifie('l’adresse connecte d’emblée', entree.corps.connecte === true && entree.corps.prenom === 'Zoé');
-verifie('le cookie est posé dans la foulée', /HttpOnly/i.test(entree.entetes['set-cookie'] || ''));
-verifie('aucun lien ne circule', !entree.corps.lien && !entree.corps.envoye);
-
-const quiZoe = await zoe.appelle(session, 'GET');
-verifie('elle est reconnue ensuite', quiZoe.corps.connecte === true && quiZoe.corps.prenom === 'Zoé');
-verifie('l’écran sait qu’il n’y a pas de courrier', quiZoe.corps.mail === false);
-
-// Même adresse, autre appareil : même personne.
-const zoeTel = new Agent('Zoé', 'zoe@exemple.fr');
-await zoeTel.appelle(session, 'POST', { body: { email: 'ZOE@Exemple.FR ', prenom: 'Zoé' } });
-const pubZoe = await zoe.publie({ type:'offre', site:'Fréhel', arrivee:'Ploufragan', heure:'12:45', places:2, note:'' });
-verifie('elle publie depuis son poste', pubZoe.statusCode === 201);
-const vuZoeTel = await zoeTel.panneau();
-verifie('et le téléphone y voit son annonce (adresse normalisée)',
-  mien(vuZoeTel, pubZoe.corps.id)?.mienne === true);
-
-const mauvaise = await zoe.appelle(session, 'POST', { body: { email: 'pasuneadresse', prenom: 'Zoé' } });
-verifie('une adresse invalide est refusée', mauvaise.statusCode === 400);
 
 console.log(`\n${ok} vérifications passées, ${ko} en échec.\n`);
 process.exit(ko ? 1 : 0);
