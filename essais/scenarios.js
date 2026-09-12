@@ -175,5 +175,31 @@ const complet = await nora.monte(offreSophie.corps.id);
 verifie('la voiture d’une place est complète', complet.statusCode === 409 && complet.corps.erreur === 'complet');
 verifie('et on nomme qui a pris la place', complet.corps.par === 'Paul');
 
+titre('9 · Sans relais de courrier : l’adresse ouvre la session (4.4bis)');
+// Ce que voit la production aujourd'hui : ni SMTP_URL, ni LIENS_EN_CLAIR.
+delete process.env.LIENS_EN_CLAIR;
+
+const zoe = new Agent('Zoé', 'zoe@exemple.fr');
+const entree = await zoe.appelle(session, 'POST', { body: { email: zoe.email, prenom: 'Zoé' } });
+verifie('l’adresse connecte d’emblée', entree.corps.connecte === true && entree.corps.prenom === 'Zoé');
+verifie('le cookie est posé dans la foulée', /HttpOnly/i.test(entree.entetes['set-cookie'] || ''));
+verifie('aucun lien ne circule', !entree.corps.lien && !entree.corps.envoye);
+
+const quiZoe = await zoe.appelle(session, 'GET');
+verifie('elle est reconnue ensuite', quiZoe.corps.connecte === true && quiZoe.corps.prenom === 'Zoé');
+verifie('l’écran sait qu’il n’y a pas de courrier', quiZoe.corps.mail === false);
+
+// Même adresse, autre appareil : même personne.
+const zoeTel = new Agent('Zoé', 'zoe@exemple.fr');
+await zoeTel.appelle(session, 'POST', { body: { email: 'ZOE@Exemple.FR ', prenom: 'Zoé' } });
+const pubZoe = await zoe.publie({ type:'offre', site:'Fréhel', arrivee:'Ploufragan', heure:'12:45', places:2, note:'' });
+verifie('elle publie depuis son poste', pubZoe.statusCode === 201);
+const vuZoeTel = await zoeTel.panneau();
+verifie('et le téléphone y voit son annonce (adresse normalisée)',
+  mien(vuZoeTel, pubZoe.corps.id)?.mienne === true);
+
+const mauvaise = await zoe.appelle(session, 'POST', { body: { email: 'pasuneadresse', prenom: 'Zoé' } });
+verifie('une adresse invalide est refusée', mauvaise.statusCode === 400);
+
 console.log(`\n${ok} vérifications passées, ${ko} en échec.\n`);
 process.exit(ko ? 1 : 0);

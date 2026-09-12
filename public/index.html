@@ -381,9 +381,7 @@
 <div class="sheet" id="ident-sheet" role="dialog" aria-modal="true" aria-labelledby="ident-title">
   <div class="grab"></div>
   <h2 id="ident-title">On se connaît&#8201;?</h2>
-  <p class="recap">Pas de mot de passe : vous recevez un lien, vous cliquez une
-  fois, et cet appareil vous reconnaît ensuite. L'adresse est celle que vous
-  voulez — professionnelle ou personnelle.</p>
+  <p class="recap" id="ident-recap"></p>
   <div class="field">
     <label for="i-name">Prénom</label>
     <input type="text" id="i-name" placeholder="Ex. Philippe" maxlength="30" autocomplete="given-name">
@@ -527,6 +525,11 @@ function exigeIdentite(action){
 }
 
 function openIdent(){
+  document.getElementById('ident-recap').textContent = mailBranche
+    ? "Pas de mot de passe : vous recevez un lien, vous cliquez une fois, et cet appareil vous reconnaît ensuite. L'adresse est celle que vous voulez — professionnelle ou personnelle."
+    : "Pas de mot de passe. Votre adresse sert à vous reconnaître d'une fois sur l'autre, et d'un appareil à l'autre : mettez la même sur votre téléphone et sur votre poste.";
+  document.getElementById('btn-ident-confirm').textContent =
+    mailBranche ? 'Recevoir mon lien' : 'Entrer';
   document.getElementById('i-name').value = moi?.prenom || '';
   document.getElementById('i-mail').value = '';
   document.getElementById('ident-ok').hidden = true;
@@ -550,7 +553,20 @@ async function confirmIdent(){
       flash('Plusieurs liens ont déjà été demandés. Attendez un quart d’heure.');
       return;
     }
-    if(!r.ok){ flash("Envoi impossible pour l'instant."); return; }
+    if(!r.ok){ flash("Identification impossible pour l'instant."); return; }
+
+    // Sans courrier, la session est ouverte d'emblée : on referme et on
+    // reprend le geste que l'identification avait interrompu.
+    if(r.data.connecte){
+      moi = { prenom: r.data.prenom };
+      renderMoi();
+      closeSheets();
+      etag = null;
+      await rafraichir();
+      const suite = apresIdent; apresIdent = null;
+      if(suite) suite();
+      return;
+    }
 
     document.getElementById('ident-actions').hidden = true;
     const ok = document.getElementById('ident-ok');

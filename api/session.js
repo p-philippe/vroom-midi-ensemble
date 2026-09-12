@@ -1,7 +1,8 @@
 import { json, configManquante } from '../lib/db.js';
 import {
   normaliseEmail, emailPlausible, personneCourante, envoieLien, ouvreSession,
-  fermeSession, poseCookie, retireCookie, mailConfigure
+  ouvreSessionSansPreuve, fermeSession, poseCookie, retireCookie,
+  mailConfigure, verificationActive
 } from '../lib/session.js';
 
 /**
@@ -32,10 +33,9 @@ export default async function handler(req, res){
       return json(res, 200, {
         connecte: !!moi,
         prenom: moi?.prenom || null,
-        // Sans relais de courrier, le lien part dans le journal du serveur et
-        // se distribue à la main : l'écran doit le dire au lieu de promettre
-        // un mail qui n'arrivera pas.
-        mail: mailConfigure()
+        // L'écran s'adapte : promettre un mail qui n'arrivera pas serait pire
+        // que de dire qu'il n'y en a pas.
+        mail: verificationActive()
       });
     }
 
@@ -47,6 +47,14 @@ export default async function handler(req, res){
       if(!emailPlausible(email)) err.push('email');
       if(prenom.length < 1 || prenom.length > 30) err.push('prenom');
       if(err.length) return json(res, 400, { erreur:'champs_invalides', champs: err });
+
+      // Sans courrier possible, l'adresse ouvre la session sur parole
+      // (4.4bis, décision du 12/09/2026). Poser SMTP_URL rallume le lien.
+      if(!verificationActive()){
+        const jeton = await ouvreSessionSansPreuve(email, prenom);
+        poseCookie(req, res, jeton);
+        return json(res, 200, { connecte: true, prenom });
+      }
 
       const issue = await envoieLien(req, email, prenom);
       if(!issue.ok) return json(res, 429, { erreur: issue.erreur });

@@ -19,15 +19,18 @@ Postgres derrière un `DATABASE_URL`, un relais de courrier derrière un
 
 ## Qui est qui
 
-Pas de mot de passe. L'agent donne l'adresse qu'il veut — professionnelle ou
-personnelle —, reçoit un lien, clique une fois : cet appareil le reconnaît
-ensuite pour un an. Le même agent sur son téléphone et sur son poste est la
-même personne, et retrouve ses annonces des deux côtés.
+Pas de mot de passe. L'agent donne son prénom et l'adresse qu'il veut, et il
+est connu : cet appareil le reconnaît ensuite pour un an. L'adresse est la clé
+d'identité — la même sur le téléphone et sur le poste, et c'est la même
+personne, qui retrouve ses annonces des deux côtés.
 
-Ce que ça garantit est la **continuité**, pas la qualité d'agent : le domaine
-de l'adresse n'est pas contrôlé, par décision du 12/09/2026. Pour un
-covoiturage entre collègues qui se connaissent, le contrôle d'appartenance se
-fait sur le parking.
+**L'adresse n'est pas vérifiée** tant qu'aucun relais de courrier n'est
+configuré. Le niveau de confiance est celui d'une feuille d'inscription
+affichée au mur : on peut y écrire le nom d'un autre. Décidé le 12/09/2026,
+pour que personne n'ait à distribuer les accès un par un.
+
+**Poser `SMTP_URL` rallume la vérification** sans toucher au code : l'agent
+reçoit alors un lien à usage unique, valable vingt minutes, et clique.
 
 Le panneau se lit sans s'identifier. On ne la demande qu'au premier geste.
 
@@ -99,9 +102,10 @@ dernière place vient d'être prise par Léa. Il reste 2 trajets à ria1. »
 
 ## Limites connues
 
-- **L'appartenance à la maison n'est pas vérifiée.** Toute adresse mail vaut
-  identité. Assumé pour un test entre volontaires ; à reprendre par la DSI avec
-  le SSO agent de l'État si le service s'élargit (4.4bis).
+- **L'adresse n'est pas vérifiée**, faute de relais de courrier : qui saisit
+  l'adresse d'un collègue passe pour lui. Assumé pour un test entre
+  volontaires. Deux marches au-dessus, dans l'ordre : `SMTP_URL` pour le lien
+  de confirmation, puis le SSO agent de l'État à la reprise DSI (4.4bis).
 
 - **Deux polices chargées depuis Google Fonts** (Public Sans, IBM Plex Mono).
   Sur un intranet coupé d'internet elles ne descendront pas : la pile de repli

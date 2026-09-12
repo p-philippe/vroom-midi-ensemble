@@ -296,9 +296,18 @@ bac à sable (cf. 1.4).*
      un lien inventé ne pose rien. Le même agent sur deux appareils est une
      seule personne — et retire depuis son téléphone ce qu'il a publié depuis
      son poste, ce qui était la limite du 4.4.
-     Sans `SMTP_URL`, le lien part dans le journal du serveur : le site
-     fonctionne, les liens se distribuent à la main le temps d'obtenir un
-     relais. Exigence d'origine :
+     **Amendé le soir même.** La distribution des liens à la main a été
+     écartée par Philippe : elle fait de lui le passage obligé de chaque
+     inscription. Sans relais de courrier, l'adresse saisie ouvre donc la
+     session **sur parole**, et le lien de confirmation se rallume tout seul
+     le jour où `SMTP_URL` est posée — un réglage, pas une réécriture.
+     Ce qu'on perd : n'importe qui peut saisir l'adresse d'un collègue et
+     passer pour lui. Niveau de confiance d'une feuille d'inscription
+     affichée au mur. Ce qu'on garde : une identité stable, valable sur tous
+     les appareils, sans mot de passe et sans intervention.
+     Trois marches, dans l'ordre : l'adresse sur parole (aujourd'hui), le lien
+     de confirmation (`SMTP_URL`), le SSO agent de l'État (reprise DSI).
+     Exigence d'origine :
      Aucun mot de passe, ni à créer, ni à retenir, ni à réinitialiser. Une
      appli de covoiturage du midi ne justifie pas un compte : le premier agent
      qui doit inventer un mot de passe pour réserver une place à 11h58 ferme
