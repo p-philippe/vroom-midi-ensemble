@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vroom ! · Midi ensemble</title>
+<style>
+  :root{
+    --paper:#F7F5F0;
+    --ink:#1F2A24;
+    --ink-soft:#5B6960;
+    --line:#DAD4C6;
+    --teal:#2F6F62;
+    --teal-dark:#204B42;
+    --amber:#C4622D;
+    --amber-soft:#F0DCC9;
+    --green-soft:#E1EAE1;
+    --card:#FFFFFF;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:-apple-system,'Segoe UI',Roboto,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .app{max-width:480px;margin:0 auto;padding:20px 16px 100px;}
+
+  .header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:18px;}
+  .header h1{font-size:24px;font-weight:800;letter-spacing:-0.015em;margin:0;}
+  .header .tagline{font-size:13px;font-weight:700;color:var(--ink-soft);margin:2px 0 0;}
+  .header .date{font-size:13px;color:var(--ink-soft);white-space:nowrap;}
+
+  .segmented{display:flex;border:1.5px solid var(--ink);border-radius:10px;overflow:hidden;margin-bottom:18px;}
+  .segmented button{
+    flex:1;padding:12px 0;background:var(--paper);border:none;
+    font-family:inherit;font-size:14.5px;font-weight:700;color:var(--ink);
+    cursor:pointer;transition:background .15s ease, color .15s ease;
+  }
+  .segmented button.active{background:var(--ink);color:var(--paper);}
+  .segmented button:not(.active):hover{background:var(--green-soft);}
+
+  .filtres{margin-bottom:14px;}
+  .filtre-ligne{display:flex;align-items:flex-start;gap:8px;margin-bottom:7px;}
+  .filtre-ligne:last-child{margin-bottom:0;}
+  .filtre-titre{
+    flex:0 0 54px;font-size:11px;font-weight:700;color:var(--ink-soft);
+    text-transform:uppercase;letter-spacing:.04em;padding-top:9px;
+  }
+  .site-filter{
+    display:flex;flex-wrap:wrap;gap:8px;
+  }
+  .site-chip{
+    flex:0 0 auto;padding:7px 14px;border-radius:999px;border:1.5px solid var(--line);
+    background:var(--card);font-family:inherit;font-size:13px;font-weight:700;color:var(--ink-soft);
+    cursor:pointer;white-space:nowrap;
+  }
+  .site-chip.active{background:var(--ink);border-color:var(--ink);color:var(--paper);}
+
+  .board-label{
+    display:flex;justify-content:space-between;align-items:center;
+    font-size:12.5px;color:var(--ink-soft);font-weight:700;
+    margin:0 2px 8px;
+  }
+  .live-dot{width:6px;height:6px;border-radius:50%;background:var(--teal);display:inline-block;margin-right:6px;animation:pulse 2s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+
+  .row{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:14px 14px;
+    margin-bottom:8px;
+    display:grid;
+    grid-template-columns:64px 1fr auto;
+    align-items:center;
+    gap:12px;
+  }
+  .row.past{opacity:.45;}
+  .row.full{background:#FBFAF7;}
+  .row .time{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--teal-dark);}
+  .row.demande .time{color:var(--amber);}
+  .row .info{min-width:0;}
+  .row .name{font-size:14.5px;font-weight:700;}
+  .row .meta{font-size:12.5px;color:var(--ink-soft);margin-top:2px;}
+  .row .note{font-size:12.5px;color:var(--ink-soft);margin-top:2px;font-style:italic;}
+  .row .takers{font-size:12.5px;color:var(--teal-dark);margin-top:3px;font-weight:700;}
+  .row .actions{display:flex;align-items:center;gap:6px;}
+  .badge{
+    font-size:11px;font-weight:700;padding:4px 8px;border-radius:6px;white-space:nowrap;
+  }
+  .badge.offre{background:var(--green-soft);color:var(--teal-dark);}
+  .badge.demande{background:var(--amber-soft);color:var(--amber);}
+  .badge.complet{background:var(--line);color:var(--ink);}
+  .badge.vous{background:var(--ink);color:var(--paper);}
+
+  .btn-take{
+    background:var(--teal);border:1.5px solid var(--teal);color:#fff;
+    font-family:inherit;font-size:12.5px;font-weight:700;
+    padding:9px 12px;border-radius:8px;cursor:pointer;white-space:nowrap;min-height:44px;
+  }
+  .btn-take.leave{background:none;color:var(--teal-dark);border-color:var(--teal);}
+  .row .del{
+    background:none;border:none;color:var(--ink-soft);font-size:18px;
+    cursor:pointer;line-height:1;
+    min-width:44px;min-height:44px;
+  }
+  .row .del:hover{color:var(--amber);}
+
+  .flash{
+    position:fixed;left:50%;transform:translateX(-50%);bottom:86px;z-index:20;
+    max-width:448px;width:calc(100% - 32px);
+    background:var(--ink);color:var(--paper);border-radius:10px;
+    padding:12px 14px;font-size:13.5px;font-weight:700;line-height:1.35;
+    box-shadow:0 6px 20px rgba(31,42,36,.28);
+  }
+  .flash[hidden]{display:none;}
+  button[disabled]{opacity:.55;cursor:default;}
+  .empty{
+    text-align:center;padding:40px 20px;color:var(--ink-soft);font-size:14px;
+    border:1.5px dashed var(--line);border-radius:12px;
+  }
+
+  .fab{
+    position:fixed;bottom:22px;left:50%;transform:translateX(-50%);
+    max-width:448px;width:calc(100% - 32px);
+    background:var(--ink);color:var(--paper);border:none;border-radius:12px;
+    padding:15px 0;font-family:inherit;font-size:15px;font-weight:800;
+    cursor:pointer;box-shadow:0 6px 20px rgba(31,42,36,.25);
+  }
+
+  .sheet-backdrop{
+    display:none;position:fixed;inset:0;background:rgba(31,42,36,.35);z-index:10;
+  }
+  .sheet-backdrop.open{display:block;}
+  .sheet{
+    position:fixed;left:0;right:0;bottom:0;z-index:11;
+    background:var(--paper);border-radius:18px 18px 0 0;
+    padding:20px 18px 24px;
+    max-width:480px;margin:0 auto;
+    transform:translateY(100%);transition:transform .22s ease;
+    visibility:hidden;
+  }
+  .sheet.open{transform:translateY(0);visibility:visible;}
+  .sheet h2{font-size:17px;margin:0 0 14px;}
+  .recap{font-size:13.5px;color:var(--ink-soft);margin:0 0 14px;}
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:12.5px;font-weight:700;color:var(--ink-soft);margin-bottom:5px;}
+  .field input, .field select{
+    width:100%;padding:11px 12px;border:1.5px solid var(--line);border-radius:9px;
+    font-family:inherit;font-size:15px;background:var(--card);color:var(--ink);
+  }
+  .field input:focus, .field select:focus{outline:2px solid var(--teal);outline-offset:1px;border-color:var(--teal);}
+  .field input[aria-invalid="true"]{border-color:var(--amber);}
+  .err{display:none;font-size:12.5px;font-weight:700;color:var(--amber);margin-top:4px;}
+  .err.show{display:block;}
+  .suggestions{
+    border:1.5px solid var(--teal);border-radius:10px;
+    background:var(--green-soft);padding:12px;margin-bottom:14px;
+  }
+  .suggestions p{margin:0 0 9px;font-size:12.5px;font-weight:700;color:var(--teal-dark);}
+  .sugg-item{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    background:var(--card);border:1px solid var(--line);border-radius:8px;
+    padding:8px 10px;margin-bottom:6px;
+  }
+  .sugg-item:last-child{margin-bottom:0;}
+  .sugg-item .txt{font-size:13px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .sugg-item .txt b{font-variant-numeric:tabular-nums;}
+  .sugg-item button{
+    flex:0 0 auto;background:var(--teal);border:1.5px solid var(--teal);color:#fff;
+    font-family:inherit;font-size:12.5px;font-weight:700;
+    padding:8px 11px;border-radius:8px;cursor:pointer;min-height:44px;
+  }
+  .note-drop{font-size:12.5px;font-weight:700;color:var(--amber);margin:-4px 0 14px;}
+  .row-2{display:flex;gap:10px;}
+  .row-2 .field{flex:1;}
+  .sheet-actions{display:flex;gap:10px;margin-top:6px;}
+  .sheet-actions button{
+    flex:1;padding:13px 0;border-radius:9px;font-family:inherit;font-size:14.5px;font-weight:700;cursor:pointer;
+  }
+  .btn-cancel{background:none;border:1.5px solid var(--line);color:var(--ink-soft);}
+  .btn-confirm{background:var(--teal);border:1.5px solid var(--teal);color:#fff;}
+  .btn-confirm.demande-mode{background:var(--amber);border-color:var(--amber);}
+
+  @media (prefers-reduced-motion: reduce){
+    .live-dot{animation:none;}
+    .sheet{transition:none;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div>
+      <h1>Vroom !</h1>
+      <p class="tagline">Midi ensemble</p>
+    </div>
+    <span class="date" id="today-label"></span>
+  </div>
+
+  <div class="filtres">
+    <div class="filtre-ligne">
+      <span class="filtre-titre" id="lbl-depart">Départ</span>
+      <div class="site-filter" id="filtre-depart" role="group" aria-labelledby="lbl-depart"></div>
+    </div>
+    <div class="filtre-ligne">
+      <span class="filtre-titre" id="lbl-arrivee">Arrivée</span>
+      <div class="site-filter" id="filtre-arrivee" role="group" aria-labelledby="lbl-arrivee"></div>
+    </div>
+  </div>
+
+  <div class="board-label">
+    <span><span class="live-dot"></span>Aujourd'hui</span>
+    <span id="count-label"></span>
+  </div>
+
+  <div id="list" aria-live="polite"></div>
+  <div id="empty-state" class="empty" style="display:none;"></div>
+</div>
+
+<div class="flash" id="flash" role="status" aria-live="polite" hidden></div>
+
+<button class="fab" id="fab-add">+ Ajouter mon créneau</button>
+
+<div class="sheet-backdrop" id="backdrop"></div>
+
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+  <h2 id="sheet-title">Ajouter mon créneau</h2>
+  <div class="segmented" role="group" aria-label="Type d'annonce">
+    <button type="button" id="tab-offre" class="active" aria-pressed="true">Je propose</button>
+    <button type="button" id="tab-demande" aria-pressed="false">Je cherche</button>
+  </div>
+  <div class="suggestions" id="suggestions" hidden></div>
+  <div class="field">
+    <label for="f-name">Prénom</label>
+    <input type="text" id="f-name" placeholder="Ex. Philippe" maxlength="30" autocomplete="given-name">
+    <p class="err" id="err-name">Indiquez votre prénom.</p>
+  </div>
+  <div class="row-2">
+    <div class="field">
+      <label for="f-site">Départ</label>
+      <select id="f-site">
+        <option value="Vallès">Vallès</option>
+        <option value="Fréhel">Fréhel</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="f-arrivee">Arrivée</label>
+      <select id="f-arrivee">
+        <option value="Rue du parc">Rue du parc</option>
+        <option value="Ploufragan">Ploufragan</option>
+        <option value="Impôts">Impôts</option>
+      </select>
+    </div>
+  </div>
+  <div class="row-2">
+    <div class="field">
+      <label for="f-time">Heure</label>
+      <select id="f-time">
+        <option value="12:00">12:00</option>
+        <option value="12:15">12:15</option>
+        <option value="12:30">12:30</option>
+        <option value="12:45">12:45</option>
+        <option value="13:00">13:00</option>
+      </select>
+    </div>
+    <div class="field" id="seats-field">
+      <label for="f-seats">Places libres</label>
+      <input type="number" id="f-seats" min="1" max="6" value="2">
+    </div>
+  </div>
+  <div class="field">
+    <label for="f-note">Note (facultatif)</label>
+    <input type="text" id="f-note" placeholder="Ex. je repasse par le bâtiment B" maxlength="60">
+  </div>
+  <div class="sheet-actions">
+    <button class="btn-cancel" id="btn-cancel">Annuler</button>
+    <button class="btn-confirm" id="btn-confirm">Publier</button>
+  </div>
+</div>
+
+<div class="sheet" id="take-sheet" role="dialog" aria-modal="true" aria-labelledby="take-title">
+  <h2 id="take-title">Je prends cette place</h2>
+  <p class="recap" id="take-recap"></p>
+  <p class="note-drop" id="take-drop" hidden></p>
+  <div class="field">
+    <label for="t-name">Votre prénom</label>
+    <input type="text" id="t-name" placeholder="Ex. Philippe" maxlength="30" autocomplete="given-name">
+    <p class="err" id="err-tname">Indiquez votre prénom.</p>
+  </div>
+  <div class="sheet-actions">
+    <button class="btn-cancel" id="btn-take-cancel">Annuler</button>
+    <button class="btn-confirm" id="btn-take-confirm">Je monte</button>
+  </div>
+</div>
+
+<div class="sheet" id="drive-sheet" role="dialog" aria-modal="true" aria-labelledby="drive-title">
+  <h2 id="drive-title">Je l'emmène</h2>
+  <p class="recap" id="drive-recap"></p>
+  <div class="field">
+    <label for="d-name">Votre prénom</label>
+    <input type="text" id="d-name" placeholder="Ex. Philippe" maxlength="30" autocomplete="given-name">
+    <p class="err" id="err-dname">Indiquez votre prénom.</p>
+  </div>
+  <div class="row-2">
+    <div class="field">
+      <label for="d-time">Heure</label>
+      <select id="d-time">
+        <option value="12:00">12:00</option>
+        <option value="12:15">12:15</option>
+        <option value="12:30">12:30</option>
+        <option value="12:45">12:45</option>
+        <option value="13:00">13:00</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="d-seats">Places dans la voiture</label>
+      <input type="number" id="d-seats" min="1" max="6" value="2">
+    </div>
+  </div>
+  <div class="sheet-actions">
+    <button class="btn-cancel" id="btn-drive-cancel">Annuler</button>
+    <button class="btn-confirm" id="btn-drive-confirm">Je publie</button>
+  </div>
+</div>
+
+<script>
+/* Vroom ! — client.
+   Plus de stockage partagé ici : le panneau vient du serveur, et toute action
+   peut échouer parce qu'un autre a été plus rapide (cf. 4.3bis). */
+
+// Deux départs, trois RIA à l'arrivée.
+const DEPARTS = ['Vallès','Fréhel'];
+const ARRIVEES = ['Rue du parc','Ploufragan','Impôts'];
+// Départs par quart d'heure, de 12h à 13h inclus. Aller simple.
+const CRENEAUX = ['12:00','12:15','12:30','12:45','13:00'];
+
+/* Identité provisoire : un jeton par navigateur, en attendant l'annuaire
+   DDTM22 (4.4). Deux appareils = deux identités, limite connue. */
+function jeton(){
+  try{
+    let j = localStorage.getItem('vroom-personne');
+    if(!j){
+      j = (crypto.randomUUID ? crypto.randomUUID()
+                             : Date.now().toString(36) + Math.random().toString(36).slice(2));
+      localStorage.setItem('vroom-personne', j);
+    }
+    return j;
+  }catch(e){ return 'ephemere-' + Date.now().toString(36) + Math.random().toString(36).slice(2,9); }
+}
+const personne = jeton();
+function litNom(){ try{ return localStorage.getItem('vroom-prenom') || ''; }catch(e){ return ''; } }
+function ecritNom(n){ try{ localStorage.setItem('vroom-prenom', n); }catch(e){} }
+
+let annonces = [];
+let etag = null;
+let myName = litNom();
+let currentTab = 'offre';
+let currentSite = 'tous';      // départ filtré
+let currentArrivee = 'tous';   // arrivée filtrée
+let takeTargetId = null;
+let driveTargetId = null;
+let lastFocus = null;
+
+const listEl = document.getElementById('list');
+const emptyEl = document.getElementById('empty-state');
+const countEl = document.getElementById('count-label');
+const flashEl = document.getElementById('flash');
+const tabOffre = document.getElementById('tab-offre');
+const tabDemande = document.getElementById('tab-demande');
+const sheet = document.getElementById('sheet');
+const takeSheet = document.getElementById('take-sheet');
+const driveSheet = document.getElementById('drive-sheet');
+const backdrop = document.getElementById('backdrop');
+const seatsField = document.getElementById('seats-field');
+const btnConfirm = document.getElementById('btn-confirm');
+
+document.getElementById('today-label').textContent =
+  new Date().toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'});
+
+/* Créneau proposé par défaut : le prochain à venir, sinon le premier. */
+function prochainCreneau(){
+  const d = new Date();
+  const maintenant = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  return CRENEAUX.find(c => c > maintenant) || CRENEAUX[0];
+}
+function escapeHtml(str){
+  const d = document.createElement('div');
+  d.textContent = str == null ? '' : String(str);
+  return d.innerHTML;
+}
+function plural(n, mot){ return `${n} ${mot}${n > 1 ? 's' : ''}`; }
+
+let flashTimer = null;
+function flash(message){
+  flashEl.textContent = message;
+  flashEl.hidden = false;
+  clearTimeout(flashTimer);
+  flashTimer = setTimeout(()=>{ flashEl.hidden = true; }, 7000);
+}
+
+/* --- serveur --------------------------------------------------------------- */
+async function rafraichir(){
+  try{
+    const r = await fetch('/api/annonces', {
+      headers: etag ? { 'if-none-match': etag } : {}
+    });
+    if(r.status === 304) return;
+    if(r.status === 503){ flash("La base de données n'est pas encore branchée."); return; }
+    if(!r.ok) return;                 // erreur de lecture : on garde l'écran
+    etag = r.headers.get('etag');
+    const corps = await r.json();
+    annonces = corps.annonces || [];
+    render();
+  }catch(e){ /* réseau coupé : l'état affiché reste, il vaut mieux que rien */ }
+}
+
+async function envoyer(chemin, methode, corps){
+  const r = await fetch(chemin, {
+    method: methode,
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(corps)
+  });
+  let data = {};
+  try{ data = await r.json(); }catch(e){}
+  // Toute réponse rapporte le panneau à jour, succès comme échec.
+  if(Array.isArray(data.annonces)){ annonces = data.annonces; etag = null; }
+  return { ok: r.ok, code: r.status, data };
+}
+
+/* Le bouton attend la réponse avant de se réjouir. */
+async function pendant(btn, action){
+  if(!btn) return action();
+  const texte = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = '…';
+  try{ return await action(); }
+  finally{ btn.disabled = false; btn.textContent = texte; }
+}
+
+/* --- lecture du panneau ---------------------------------------------------- */
+function passagersDe(a){ return Array.isArray(a.passagers) ? a.passagers : []; }
+function placesLibres(a){ return Math.max(0, (a.places || 0) - passagersDe(a).length); }
+function estMienne(a){ return a.personne === personne; }
+function suisABord(a){ return passagersDe(a).some(p => p.personne === personne); }
+function estPassee(heure){
+  const [h,m] = heure.split(':').map(Number);
+  const t = new Date(); t.setHours(h,m,0,0);
+  return t < new Date();
+}
+function libelleplaces(a){
+  const n = placesLibres(a);
+  return n === 0 ? 'complet' : plural(n,'place') + ' libre' + (n > 1 ? 's' : '');
+}
+function itineraire(a){ return `${a.site} → ${a.arrivee}`; }
+/* Un trajet ne « colle » que s'il part du même endroit ET va au même RIA. */
+function trajetsQuiCollent(site, arrivee){
+  return annonces
+    .filter(a => a.type === 'offre' && a.site === site && a.arrivee === arrivee
+                 && !estPassee(a.heure) && placesLibres(a) > 0)
+    .sort((a,b)=> a.heure.localeCompare(b.heure));
+}
+
+/* Départ et arrivée se filtrent séparément, et se combinent. */
+function renderUnFiltre(elId, valeurs, courant, choisir, libelleTous){
+  const el = document.getElementById(elId);
+  el.innerHTML = '';
+  ['tous', ...valeurs].forEach(v => {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'site-chip' + (courant === v ? ' active' : '');
+    chip.setAttribute('aria-pressed', String(courant === v));
+    chip.textContent = v === 'tous' ? libelleTous : v;
+    chip.addEventListener('click', ()=>{ choisir(v); renderFiltres(); render(); });
+    el.appendChild(chip);
+  });
+}
+function renderFiltres(){
+  renderUnFiltre('filtre-depart', DEPARTS, currentSite,
+                 v => currentSite = v, 'Tous');
+  renderUnFiltre('filtre-arrivee', ARRIVEES, currentArrivee,
+                 v => currentArrivee = v, 'Toutes');
+}
+
+function render(){
+  const vues = annonces
+    .filter(a => currentSite === 'tous' || a.site === currentSite)
+    .filter(a => currentArrivee === 'tous' || a.arrivee === currentArrivee)
+    .sort((a,b)=> a.heure.localeCompare(b.heure));
+
+  const offres = vues.filter(a => a.type === 'offre').length;
+  countEl.textContent = vues.length
+    ? `${plural(offres,'trajet')} · ${plural(vues.length - offres,'recherche')}`
+    : '';
+
+  listEl.innerHTML = '';
+  if(!vues.length){
+    emptyEl.style.display = 'block';
+    emptyEl.textContent = (currentSite === 'tous' && currentArrivee === 'tous')
+      ? "Rien pour l'instant. Publiez le premier créneau."
+      : "Rien sur cet itinéraire. Élargissez le filtre, ou publiez votre créneau.";
+    return;
+  }
+  emptyEl.style.display = 'none';
+
+  vues.forEach(a => {
+    const mienne = estMienne(a);
+    const passee = estPassee(a.heure);
+    const offre = a.type === 'offre';
+    const complet = offre && placesLibres(a) === 0;
+    const passagers = passagersDe(a);
+
+    const row = document.createElement('div');
+    row.className = `row ${a.type}` + (passee ? ' past' : '') + (complet ? ' full' : '');
+    const meta = offre
+      ? `${escapeHtml(itineraire(a))} · ${escapeHtml(libelleplaces(a))}`
+      : `${escapeHtml(itineraire(a))} · cherche une place`;
+    row.innerHTML = `
+      <div class="time">${escapeHtml(a.heure)}</div>
+      <div class="info">
+        <div class="name">${escapeHtml(a.prenom)}</div>
+        <div class="meta">${meta}</div>
+        ${a.note ? `<div class="note">${escapeHtml(a.note)}</div>` : ''}
+        ${passagers.length ? `<div class="takers">Avec ${passagers.map(p=>escapeHtml(p.prenom)).join(', ')}</div>` : ''}
+      </div>
+      <div class="actions"></div>
+    `;
+    const actions = row.querySelector('.actions');
+
+    if(mienne){
+      // Sans ce repère, l'absence de bouton « Je monte » sur sa propre annonce
+      // se lit comme une panne. Signalé à l'usage le 08/09/2026.
+      const vous = document.createElement('span');
+      vous.className = 'badge vous';
+      vous.textContent = 'Vous';
+      actions.appendChild(vous);
+      const del = document.createElement('button');
+      del.type = 'button';
+      del.className = 'del';
+      del.setAttribute('aria-label', `Retirer mon annonce de ${a.heure}`);
+      del.textContent = '✕';
+      del.addEventListener('click', ()=> pendant(del, ()=> retirer(a.id)));
+      actions.appendChild(del);
+    }else if(offre && suisABord(a)){
+      const quitter = document.createElement('button');
+      quitter.type = 'button';
+      quitter.className = 'btn-take leave';
+      quitter.textContent = 'Je me désiste';
+      quitter.addEventListener('click', ()=> pendant(quitter, ()=> seDesister(a.id)));
+      actions.appendChild(quitter);
+    }else if(!offre && !passee){
+      const emmener = document.createElement('button');
+      emmener.type = 'button';
+      emmener.className = 'btn-take';
+      emmener.textContent = "Je l'emmène";
+      emmener.setAttribute('aria-label', `Emmener ${a.prenom}, qui cherche une place à ${a.heure}`);
+      emmener.addEventListener('click', ()=> openDrive(a.id));
+      actions.appendChild(emmener);
+    }else if(offre && !passee && !complet){
+      const monter = document.createElement('button');
+      monter.type = 'button';
+      monter.className = 'btn-take';
+      monter.textContent = 'Je monte';
+      monter.setAttribute('aria-label', `Prendre une place avec ${a.prenom} à ${a.heure}`);
+      monter.addEventListener('click', ()=> openTake(a.id));
+      actions.appendChild(monter);
+    }else{
+      const badge = document.createElement('span');
+      badge.className = 'badge ' + (complet ? 'complet' : a.type);
+      badge.textContent = complet ? 'Complet' : (offre ? 'Conduit' : 'Cherche');
+      actions.appendChild(badge);
+    }
+    listEl.appendChild(row);
+  });
+}
+
+/* --- actions --------------------------------------------------------------- */
+async function retirer(id){
+  const r = await envoyer('/api/annonces', 'DELETE', { id, personne });
+  if(!r.ok && r.data.erreur !== 'introuvable') flash("Retrait impossible pour l'instant.");
+  render();
+}
+
+async function seDesister(annonce_id){
+  const r = await envoyer('/api/places', 'DELETE', { annonce_id, personne });
+  if(!r.ok) flash("Désistement impossible pour l'instant.");
+  render();
+}
+
+/* Reproposer plutôt que bloquer : on montre ce qui reste au même site. */
+function reproposer(a, message){
+  currentSite = a.site;
+  currentArrivee = a.arrivee || 'tous';
+  renderFiltres();
+  render();
+  const reste = trajetsQuiCollent(a.site, a.arrivee).length;
+  const trajet = `${a.site} → ${a.arrivee}`;
+  flash(message + (reste ? ` Il reste ${plural(reste,'trajet')} sur ${trajet}.`
+                         : ` Plus rien sur ${trajet} pour le moment.`));
+}
+
+function openTake(annonceId){
+  const a = annonces.find(x => x.id === annonceId);
+  if(!a) return;
+  takeTargetId = annonceId;
+  document.getElementById('take-recap').textContent =
+    `${a.prenom} · ${a.heure} · ${itineraire(a)} — ${libelleplaces(a)}`;
+  const maDemande = annonces.filter(x => x.type === 'demande' && estMienne(x));
+  const dropEl = document.getElementById('take-drop');
+  dropEl.hidden = maDemande.length === 0;
+  dropEl.textContent = maDemande.length
+    ? `Votre demande de ${maDemande.map(d=>d.heure).join(', ')} sera retirée du panneau.`
+    : '';
+  const champ = document.getElementById('t-name');
+  champ.value = myName;
+  setError('t-name','err-tname',false);
+  openSheetEl(takeSheet, champ);
+}
+
+async function confirmTake(){
+  const prenom = document.getElementById('t-name').value.trim();
+  if(!prenom){ setError('t-name','err-tname',true); return; }
+  const cible = annonces.find(a => a.id === takeTargetId);
+  const trajet = cible || { site: currentSite, arrivee: '' };
+
+  await pendant(document.getElementById('btn-take-confirm'), async ()=>{
+    const r = await envoyer('/api/places', 'POST',
+      { annonce_id: takeTargetId, personne, prenom });
+    if(r.ok){ myName = prenom; ecritNom(prenom); closeSheets(); render(); return; }
+    closeSheets();
+    if(r.data.erreur === 'complet'){
+      reproposer(trajet, r.data.par
+        ? `La dernière place vient d'être prise par ${r.data.par}.`
+        : `Ce trajet vient d'être complet.`);
+    }else if(r.data.erreur === 'annonce_close'){
+      reproposer(trajet, 'Ce trajet vient d’être retiré.');
+    }else if(r.data.erreur === 'deja_a_bord'){
+      render(); flash('Vous êtes déjà à bord de ce trajet.');
+    }else{
+      render(); flash("Impossible de prendre la place pour l'instant.");
+    }
+  });
+}
+
+function openDrive(demandeId){
+  const d = annonces.find(x => x.id === demandeId);
+  if(!d) return;
+  driveTargetId = demandeId;
+  document.getElementById('drive-recap').textContent =
+    `${d.prenom} cherche une place à ${d.heure}, ${itineraire(d)}. Publiez votre trajet : ${d.prenom} y sera déjà à bord.`;
+  document.getElementById('d-name').value = myName;
+  document.getElementById('d-time').value = CRENEAUX.includes(d.heure) ? d.heure : prochainCreneau();
+  document.getElementById('d-seats').value = 2;
+  setError('d-name','err-dname',false);
+  openSheetEl(driveSheet, document.getElementById('d-name'));
+}
+
+async function confirmDrive(){
+  const prenom = document.getElementById('d-name').value.trim();
+  const heure = document.getElementById('d-time').value;
+  const places = parseInt(document.getElementById('d-seats').value, 10) || 1;
+  setError('d-name','err-dname',!prenom);
+  if(!prenom) return;
+
+  const cible = annonces.find(a => a.id === driveTargetId);
+  const qui = cible ? cible.prenom : 'La personne';
+
+  await pendant(document.getElementById('btn-drive-confirm'), async ()=>{
+    const r = await envoyer('/api/demandes', 'POST',
+      { demande_id: driveTargetId, personne, prenom, heure, places });
+    if(r.ok){ myName = prenom; ecritNom(prenom); closeSheets(); render(); return; }
+    closeSheets(); render();
+    flash(r.data.erreur === 'deja_pourvue'
+      ? `${qui} a déjà trouvé une place.`
+      : "Publication impossible pour l'instant.");
+  });
+}
+
+/* --- suggestions avant de publier une demande ------------------------------ */
+function renderSuggestions(){
+  const box = document.getElementById('suggestions');
+  box.innerHTML = '';
+  if(currentTab !== 'demande'){ box.hidden = true; return; }
+  const site = document.getElementById('f-site').value;
+  const arrivee = document.getElementById('f-arrivee').value;
+  const m = trajetsQuiCollent(site, arrivee).slice(0,3);
+  if(!m.length){ box.hidden = true; return; }
+  box.hidden = false;
+  const p = document.createElement('p');
+  p.textContent = m.length > 1
+    ? `${m.length} trajets font ${site} → ${arrivee}. Inutile de publier si l'un vous convient.`
+    : `Un trajet fait ${site} → ${arrivee}. Inutile de publier s'il vous convient.`;
+  box.appendChild(p);
+  m.forEach(o => {
+    const item = document.createElement('div');
+    item.className = 'sugg-item';
+    const txt = document.createElement('span');
+    txt.className = 'txt';
+    txt.innerHTML = `<b>${escapeHtml(o.heure)}</b> · ${escapeHtml(o.prenom)} · ${escapeHtml(libelleplaces(o))}`;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = 'Je monte';
+    btn.setAttribute('aria-label', `Prendre une place avec ${o.prenom} à ${o.heure}`);
+    btn.addEventListener('click', ()=>{ closeSheets(); openTake(o.id); });
+    item.appendChild(txt); item.appendChild(btn);
+    box.appendChild(item);
+  });
+}
+
+/* --- feuilles modales ------------------------------------------------------ */
+function setError(inputId, errId, on){
+  document.getElementById(inputId).setAttribute('aria-invalid', String(on));
+  document.getElementById(errId).classList.toggle('show', on);
+}
+function openSheetEl(el, focus){
+  lastFocus = document.activeElement;
+  backdrop.classList.add('open');
+  el.classList.add('open');
+  if(focus) focus.focus();
+}
+function closeSheets(){
+  backdrop.classList.remove('open');
+  [sheet, takeSheet, driveSheet].forEach(el => el.classList.remove('open'));
+  takeTargetId = null;
+  driveTargetId = null;
+  if(lastFocus && lastFocus.focus) lastFocus.focus();
+  lastFocus = null;
+}
+function feuillesOuvertes(){
+  return [sheet, takeSheet, driveSheet].filter(el => el.classList.contains('open'));
+}
+document.addEventListener('keydown', (e)=>{
+  const ouverte = feuillesOuvertes()[0];
+  if(!ouverte) return;
+  if(e.key === 'Escape'){ closeSheets(); return; }
+  if(e.key !== 'Tab') return;
+  const f = ouverte.querySelectorAll('button, input, select, [href], [tabindex]:not([tabindex="-1"])');
+  if(!f.length) return;
+  const premier = f[0], dernier = f[f.length-1];
+  if(e.shiftKey && document.activeElement === premier){ e.preventDefault(); dernier.focus(); }
+  else if(!e.shiftKey && document.activeElement === dernier){ e.preventDefault(); premier.focus(); }
+});
+
+function setTab(tab){
+  currentTab = tab;
+  tabOffre.classList.toggle('active', tab === 'offre');
+  tabDemande.classList.toggle('active', tab === 'demande');
+  tabOffre.setAttribute('aria-pressed', String(tab === 'offre'));
+  tabDemande.setAttribute('aria-pressed', String(tab === 'demande'));
+  seatsField.style.display = tab === 'offre' ? 'block' : 'none';
+  btnConfirm.classList.toggle('demande-mode', tab === 'demande');
+  renderSuggestions();
+}
+tabOffre.addEventListener('click', ()=> setTab('offre'));
+tabDemande.addEventListener('click', ()=> setTab('demande'));
+document.getElementById('f-site').addEventListener('change', renderSuggestions);
+document.getElementById('f-arrivee').addEventListener('change', renderSuggestions);
+
+function openSheet(){
+  setTab(currentTab);
+  document.getElementById('f-time').value = prochainCreneau();
+  document.getElementById('f-name').value = myName;
+  document.getElementById('f-note').value = '';
+  document.getElementById('f-seats').value = 2;
+  setError('f-name','err-name',false);
+  openSheetEl(sheet, document.getElementById('f-name'));
+}
+document.getElementById('fab-add').addEventListener('click', openSheet);
+document.getElementById('btn-cancel').addEventListener('click', closeSheets);
+document.getElementById('btn-take-cancel').addEventListener('click', closeSheets);
+document.getElementById('btn-take-confirm').addEventListener('click', confirmTake);
+document.getElementById('btn-drive-cancel').addEventListener('click', closeSheets);
+document.getElementById('btn-drive-confirm').addEventListener('click', confirmDrive);
+backdrop.addEventListener('click', closeSheets);
+
+document.getElementById('btn-confirm').addEventListener('click', async ()=>{
+  const prenom = document.getElementById('f-name').value.trim();
+  const site = document.getElementById('f-site').value;
+  const arrivee = document.getElementById('f-arrivee').value;
+  const heure = document.getElementById('f-time').value;
+  const places = parseInt(document.getElementById('f-seats').value, 10) || 1;
+  const note = document.getElementById('f-note').value.trim();
+  setError('f-name','err-name',!prenom);
+  if(!prenom) return;
+
+  await pendant(document.getElementById('btn-confirm'), async ()=>{
+    const r = await envoyer('/api/annonces', 'POST',
+      { type: currentTab, prenom, personne, site, arrivee, heure, places, note });
+    if(r.ok){ myName = prenom; ecritNom(prenom); closeSheets(); render(); return; }
+    render();
+    flash("Publication impossible pour l'instant.");
+  });
+});
+
+(async function init(){
+  renderFiltres();
+  setTab('offre');
+  await rafraichir();
+  // Cinq secondes : c'est le coup de feu de 11h55 qui commande, pas la charge.
+  setInterval(()=>{ if(!feuillesOuvertes().length) rafraichir(); }, 5000);
+  document.addEventListener('visibilitychange', ()=>{
+    if(document.visibilityState === 'visible') rafraichir();
+  });
+})();
+
+</script>
+</body>
+</html>

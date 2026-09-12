@@ -1,0 +1,9 @@
+{
+  "name": "vroom",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Vroom ! — Midi ensemble. Covoiturage RIA entre collègues, DDTM22.",
+  "engines": { "node": ">=20" },
+  "dependencies": { "pg": "^8.13.1" }
+}
