@@ -174,6 +174,20 @@
     padding:8px 11px;border-radius:8px;cursor:pointer;min-height:44px;
   }
   .note-drop{font-size:12.5px;font-weight:700;color:var(--amber);margin:-4px 0 14px;}
+  .ident-ok{
+    font-size:13px;color:var(--teal-dark);background:var(--green-soft);
+    border:1.5px solid var(--teal);border-radius:10px;padding:12px;margin:0 0 14px;
+  }
+  .ident-ok a{color:var(--teal-dark);word-break:break-all;}
+  .moi{
+    display:flex;justify-content:space-between;align-items:center;gap:10px;
+    font-size:12.5px;color:var(--ink-soft);margin:0 2px 10px;
+  }
+  .moi button{
+    flex:0 0 auto;background:none;border:none;padding:6px 2px;
+    font-family:inherit;font-size:12.5px;font-weight:700;color:var(--teal-dark);
+    text-decoration:underline;cursor:pointer;min-height:44px;
+  }
   .row-2{display:flex;gap:10px;}
   .row-2 .field{flex:1;}
   .sheet-actions{display:flex;gap:10px;margin-top:6px;}
@@ -211,6 +225,8 @@
     </div>
   </div>
 
+  <div class="moi" id="moi-ligne" hidden></div>
+
   <div class="board-label">
     <span><span class="live-dot"></span>Aujourd'hui</span>
     <span id="count-label"></span>
@@ -233,11 +249,6 @@
     <button type="button" id="tab-demande" aria-pressed="false">Je cherche</button>
   </div>
   <div class="suggestions" id="suggestions" hidden></div>
-  <div class="field">
-    <label for="f-name">Prénom</label>
-    <input type="text" id="f-name" placeholder="Ex. Philippe" maxlength="30" autocomplete="given-name">
-    <p class="err" id="err-name">Indiquez votre prénom.</p>
-  </div>
   <div class="row-2">
     <div class="field">
       <label for="f-site">Départ</label>
@@ -285,11 +296,6 @@
   <h2 id="take-title">Je prends cette place</h2>
   <p class="recap" id="take-recap"></p>
   <p class="note-drop" id="take-drop" hidden></p>
-  <div class="field">
-    <label for="t-name">Votre prénom</label>
-    <input type="text" id="t-name" placeholder="Ex. Philippe" maxlength="30" autocomplete="given-name">
-    <p class="err" id="err-tname">Indiquez votre prénom.</p>
-  </div>
   <div class="sheet-actions">
     <button class="btn-cancel" id="btn-take-cancel">Annuler</button>
     <button class="btn-confirm" id="btn-take-confirm">Je monte</button>
@@ -299,11 +305,6 @@
 <div class="sheet" id="drive-sheet" role="dialog" aria-modal="true" aria-labelledby="drive-title">
   <h2 id="drive-title">Je l'emmène</h2>
   <p class="recap" id="drive-recap"></p>
-  <div class="field">
-    <label for="d-name">Votre prénom</label>
-    <input type="text" id="d-name" placeholder="Ex. Philippe" maxlength="30" autocomplete="given-name">
-    <p class="err" id="err-dname">Indiquez votre prénom.</p>
-  </div>
   <div class="row-2">
     <div class="field">
       <label for="d-time">Heure</label>
@@ -326,6 +327,29 @@
   </div>
 </div>
 
+<div class="sheet" id="ident-sheet" role="dialog" aria-modal="true" aria-labelledby="ident-title">
+  <h2 id="ident-title">On se connaît ?</h2>
+  <p class="recap">Pas de mot de passe : vous recevez un lien, vous cliquez une
+  fois, et cet appareil vous reconnaît ensuite. L'adresse est celle que vous
+  voulez — professionnelle ou personnelle.</p>
+  <div class="field">
+    <label for="i-name">Prénom</label>
+    <input type="text" id="i-name" placeholder="Ex. Philippe" maxlength="30" autocomplete="given-name">
+    <p class="err" id="err-iname">Indiquez votre prénom.</p>
+  </div>
+  <div class="field">
+    <label for="i-mail">Adresse mail</label>
+    <input type="email" id="i-mail" placeholder="vous@exemple.fr" maxlength="120"
+           autocomplete="email" inputmode="email">
+    <p class="err" id="err-imail">Vérifiez cette adresse.</p>
+  </div>
+  <div class="ident-ok" id="ident-ok" hidden></div>
+  <div class="sheet-actions" id="ident-actions">
+    <button class="btn-cancel" id="btn-ident-cancel">Annuler</button>
+    <button class="btn-confirm" id="btn-ident-confirm">Recevoir mon lien</button>
+  </div>
+</div>
+
 <script>
 /* Vroom ! — client.
    Plus de stockage partagé ici : le panneau vient du serveur, et toute action
@@ -337,26 +361,17 @@ const ARRIVEES = ['Rue du parc','Ploufragan','Impôts'];
 // Départs par quart d'heure, de 12h à 13h inclus. Aller simple.
 const CRENEAUX = ['12:00','12:15','12:30','12:45','13:00'];
 
-/* Identité provisoire : un jeton par navigateur, en attendant l'annuaire
-   DDTM22 (4.4). Deux appareils = deux identités, limite connue. */
-function jeton(){
-  try{
-    let j = localStorage.getItem('vroom-personne');
-    if(!j){
-      j = (crypto.randomUUID ? crypto.randomUUID()
-                             : Date.now().toString(36) + Math.random().toString(36).slice(2));
-      localStorage.setItem('vroom-personne', j);
-    }
-    return j;
-  }catch(e){ return 'ephemere-' + Date.now().toString(36) + Math.random().toString(36).slice(2,9); }
-}
-const personne = jeton();
-function litNom(){ try{ return localStorage.getItem('vroom-prenom') || ''; }catch(e){ return ''; } }
-function ecritNom(n){ try{ localStorage.setItem('vroom-prenom', n); }catch(e){} }
+/* Identification sans mot de passe (4.4bis). Le client ne dit plus qui il est
+   — il ne le sait même pas : l'identité vit dans un cookie que le serveur
+   seul lit. Ici, on sait seulement s'il y en a une, pour la demander au bon
+   moment : au premier geste, jamais à l'arrivée. Le panneau se lit sans rien
+   donner de soi. */
+let moi = null;              // { prenom } une fois identifié
+let mailBranche = true;      // le serveur sait-il poster un courrier
+let apresIdent = null;       // le geste interrompu, repris après identification
 
 let annonces = [];
 let etag = null;
-let myName = litNom();
 let currentTab = 'offre';
 let currentSite = 'tous';      // départ filtré
 let currentArrivee = 'tous';   // arrivée filtrée
@@ -373,6 +388,7 @@ const tabDemande = document.getElementById('tab-demande');
 const sheet = document.getElementById('sheet');
 const takeSheet = document.getElementById('take-sheet');
 const driveSheet = document.getElementById('drive-sheet');
+const identSheet = document.getElementById('ident-sheet');
 const backdrop = document.getElementById('backdrop');
 const seatsField = document.getElementById('seats-field');
 const btnConfirm = document.getElementById('btn-confirm');
@@ -401,6 +417,100 @@ function flash(message){
   flashTimer = setTimeout(()=>{ flashEl.hidden = true; }, 7000);
 }
 
+/* --- identification -------------------------------------------------------- */
+async function litSession(){
+  try{
+    const r = await fetch('/api/session');
+    if(!r.ok) return;
+    const d = await r.json();
+    moi = d.connecte ? { prenom: d.prenom } : null;
+    mailBranche = d.mail !== false;
+  }catch(e){ /* réseau : on reste tel quel, le panneau se lit quand même */ }
+  renderMoi();
+}
+
+function renderMoi(){
+  const el = document.getElementById('moi-ligne');
+  el.innerHTML = '';
+  el.hidden = !moi;
+  if(!moi) return;
+  const txt = document.createElement('span');
+  txt.textContent = `Vous êtes ${moi.prenom}.`;
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.textContent = 'Ce n’est pas vous ?';
+  btn.addEventListener('click', ()=> pendant(btn, deconnecter));
+  el.appendChild(txt);
+  el.appendChild(btn);
+}
+
+async function deconnecter(){
+  try{ await fetch('/api/session', { method:'DELETE' }); }catch(e){}
+  moi = null;
+  renderMoi();
+  etag = null;              // « c'est la vôtre » change : le panneau aussi
+  await rafraichir();
+  flash('Vous êtes déconnecté de cet appareil.');
+}
+
+/* On ne demande l'identité qu'au moment d'agir, et on reprend le geste
+   interrompu une fois le lien cliqué — dans la limite du rechargement de
+   page, qui le perd. */
+function exigeIdentite(action){
+  if(moi) return action();
+  apresIdent = action;
+  openIdent();
+  return undefined;
+}
+
+function openIdent(){
+  document.getElementById('i-name').value = moi?.prenom || '';
+  document.getElementById('i-mail').value = '';
+  document.getElementById('ident-ok').hidden = true;
+  document.getElementById('ident-actions').hidden = false;
+  setError('i-name','err-iname',false);
+  setError('i-mail','err-imail',false);
+  openSheetEl(identSheet, document.getElementById('i-name'));
+}
+
+async function confirmIdent(){
+  const prenom = document.getElementById('i-name').value.trim();
+  const email = document.getElementById('i-mail').value.trim();
+  const mailOk = /^[^@\s]+@[^@\s.]+(\.[^@\s.]+)+$/.test(email);
+  setError('i-name','err-iname',!prenom);
+  setError('i-mail','err-imail',!mailOk);
+  if(!prenom || !mailOk) return;
+
+  await pendant(document.getElementById('btn-ident-confirm'), async ()=>{
+    const r = await envoyer('/api/session', 'POST', { email, prenom });
+    const ok = document.getElementById('ident-ok');
+    if(r.code === 429){
+      flash('Plusieurs liens ont déjà été demandés. Attendez un quart d’heure.');
+      return;
+    }
+    if(!r.ok){ flash("Envoi impossible pour l'instant."); return; }
+
+    document.getElementById('ident-actions').hidden = true;
+    ok.hidden = false;
+    ok.innerHTML = '';
+    const p = document.createElement('p');
+    p.style.margin = '0';
+    if(r.data.lien){
+      // Réglage de développement local : le lien revient au lieu de partir.
+      p.textContent = 'Lien prêt (mode local) : ';
+      const a = document.createElement('a');
+      a.href = r.data.lien;
+      a.textContent = 'ouvrir ma session';
+      p.appendChild(a);
+    }else if(r.data.poste){
+      p.textContent = `Un lien vient de partir vers ${email}. Ouvrez-le depuis cet appareil : il vaut vingt minutes.`;
+    }else{
+      p.textContent = "L'envoi de courrier n'est pas encore branché sur ce site. Votre lien a été noté côté serveur — demandez-le à l'organisateur du test.";
+    }
+    ok.appendChild(p);
+  });
+}
+
 /* --- serveur --------------------------------------------------------------- */
 async function rafraichir(){
   try{
@@ -427,6 +537,9 @@ async function envoyer(chemin, methode, corps){
   try{ data = await r.json(); }catch(e){}
   // Toute réponse rapporte le panneau à jour, succès comme échec.
   if(Array.isArray(data.annonces)){ annonces = data.annonces; etag = null; }
+  // La session a expiré ou le cookie a sauté : on le découvre ici, et on
+  // redemande plutôt que de laisser un bouton sans effet.
+  if(r.status === 401){ moi = null; renderMoi(); }
   return { ok: r.ok, code: r.status, data };
 }
 
@@ -443,8 +556,19 @@ async function pendant(btn, action){
 /* --- lecture du panneau ---------------------------------------------------- */
 function passagersDe(a){ return Array.isArray(a.passagers) ? a.passagers : []; }
 function placesLibres(a){ return Math.max(0, (a.places || 0) - passagersDe(a).length); }
-function estMienne(a){ return a.personne === personne; }
-function suisABord(a){ return passagersDe(a).some(p => p.personne === personne); }
+// Le serveur ne renvoie plus d'identifiants, seulement ces deux réponses.
+function estMienne(a){ return a.mienne === true; }
+function suisABord(a){ return a.a_bord === true; }
+
+/* La règle du 1bis.11, dite à l'usager dans ses mots. */
+function messageEngage(d){
+  const quand = d && d.heure ? ` à ${d.heure}` : " aujourd'hui";
+  if(d && d.quoi === 'conduit')
+    return `Vous conduisez déjà${quand}. Retirez votre trajet avant de monter avec quelqu'un.`;
+  if(d && d.quoi === 'monte')
+    return `Vous avez déjà une place${quand}. Désistez-vous d'abord.`;
+  return "Vous avez déjà un trajet aujourd'hui.";
+}
 function estPassee(heure){
   const [h,m] = heure.split(':').map(Number);
   const t = new Date(); t.setHours(h,m,0,0);
@@ -548,7 +672,7 @@ function render(){
       quitter.type = 'button';
       quitter.className = 'btn-take leave';
       quitter.textContent = 'Je me désiste';
-      quitter.addEventListener('click', ()=> pendant(quitter, ()=> seDesister(a.id)));
+      quitter.addEventListener('click', ()=> exigeIdentite(()=> pendant(quitter, ()=> seDesister(a.id))));
       actions.appendChild(quitter);
     }else if(!offre && !passee){
       const emmener = document.createElement('button');
@@ -556,7 +680,7 @@ function render(){
       emmener.className = 'btn-take';
       emmener.textContent = "Je l'emmène";
       emmener.setAttribute('aria-label', `Emmener ${a.prenom}, qui cherche une place à ${a.heure}`);
-      emmener.addEventListener('click', ()=> openDrive(a.id));
+      emmener.addEventListener('click', ()=> exigeIdentite(()=> openDrive(a.id)));
       actions.appendChild(emmener);
     }else if(offre && !passee && !complet){
       const monter = document.createElement('button');
@@ -564,7 +688,7 @@ function render(){
       monter.className = 'btn-take';
       monter.textContent = 'Je monte';
       monter.setAttribute('aria-label', `Prendre une place avec ${a.prenom} à ${a.heure}`);
-      monter.addEventListener('click', ()=> openTake(a.id));
+      monter.addEventListener('click', ()=> exigeIdentite(()=> openTake(a.id)));
       actions.appendChild(monter);
     }else{
       const badge = document.createElement('span');
@@ -578,13 +702,13 @@ function render(){
 
 /* --- actions --------------------------------------------------------------- */
 async function retirer(id){
-  const r = await envoyer('/api/annonces', 'DELETE', { id, personne });
+  const r = await envoyer('/api/annonces', 'DELETE', { id });
   if(!r.ok && r.data.erreur !== 'introuvable') flash("Retrait impossible pour l'instant.");
   render();
 }
 
 async function seDesister(annonce_id){
-  const r = await envoyer('/api/places', 'DELETE', { annonce_id, personne });
+  const r = await envoyer('/api/places', 'DELETE', { annonce_id });
   if(!r.ok) flash("Désistement impossible pour l'instant.");
   render();
 }
@@ -613,24 +737,20 @@ function openTake(annonceId){
   dropEl.textContent = maDemande.length
     ? `Votre demande de ${maDemande.map(d=>d.heure).join(', ')} sera retirée du panneau.`
     : '';
-  const champ = document.getElementById('t-name');
-  champ.value = myName;
-  setError('t-name','err-tname',false);
-  openSheetEl(takeSheet, champ);
+  openSheetEl(takeSheet, document.getElementById('btn-take-confirm'));
 }
 
 async function confirmTake(){
-  const prenom = document.getElementById('t-name').value.trim();
-  if(!prenom){ setError('t-name','err-tname',true); return; }
   const cible = annonces.find(a => a.id === takeTargetId);
   const trajet = cible || { site: currentSite, arrivee: '' };
 
   await pendant(document.getElementById('btn-take-confirm'), async ()=>{
-    const r = await envoyer('/api/places', 'POST',
-      { annonce_id: takeTargetId, personne, prenom });
-    if(r.ok){ myName = prenom; ecritNom(prenom); closeSheets(); render(); return; }
+    const r = await envoyer('/api/places', 'POST', { annonce_id: takeTargetId });
+    if(r.ok){ closeSheets(); render(); return; }
     closeSheets();
-    if(r.data.erreur === 'complet'){
+    if(r.data.erreur === 'deja_engage'){
+      render(); flash(messageEngage(r.data));
+    }else if(r.data.erreur === 'complet'){
       reproposer(trajet, r.data.par
         ? `La dernière place vient d'être prise par ${r.data.par}.`
         : `Ce trajet vient d'être complet.`);
@@ -650,31 +770,26 @@ function openDrive(demandeId){
   driveTargetId = demandeId;
   document.getElementById('drive-recap').textContent =
     `${d.prenom} cherche une place à ${d.heure}, ${itineraire(d)}. Publiez votre trajet : ${d.prenom} y sera déjà à bord.`;
-  document.getElementById('d-name').value = myName;
   document.getElementById('d-time').value = CRENEAUX.includes(d.heure) ? d.heure : prochainCreneau();
   document.getElementById('d-seats').value = 2;
-  setError('d-name','err-dname',false);
-  openSheetEl(driveSheet, document.getElementById('d-name'));
+  openSheetEl(driveSheet, document.getElementById('d-time'));
 }
 
 async function confirmDrive(){
-  const prenom = document.getElementById('d-name').value.trim();
   const heure = document.getElementById('d-time').value;
   const places = parseInt(document.getElementById('d-seats').value, 10) || 1;
-  setError('d-name','err-dname',!prenom);
-  if(!prenom) return;
-
   const cible = annonces.find(a => a.id === driveTargetId);
   const qui = cible ? cible.prenom : 'La personne';
 
   await pendant(document.getElementById('btn-drive-confirm'), async ()=>{
     const r = await envoyer('/api/demandes', 'POST',
-      { demande_id: driveTargetId, personne, prenom, heure, places });
-    if(r.ok){ myName = prenom; ecritNom(prenom); closeSheets(); render(); return; }
+      { demande_id: driveTargetId, heure, places });
+    if(r.ok){ closeSheets(); render(); return; }
     closeSheets(); render();
-    flash(r.data.erreur === 'deja_pourvue'
-      ? `${qui} a déjà trouvé une place.`
-      : "Publication impossible pour l'instant.");
+    if(r.data.erreur === 'deja_engage') flash(messageEngage(r.data));
+    else if(r.data.erreur === 'deja_pourvue') flash(`${qui} a déjà trouvé une place.`);
+    else if(r.data.erreur === 'deja_partie') flash(`${qui} vient de trouver une place ailleurs.`);
+    else flash("Publication impossible pour l'instant.");
   });
 }
 
@@ -703,7 +818,7 @@ function renderSuggestions(){
     btn.type = 'button';
     btn.textContent = 'Je monte';
     btn.setAttribute('aria-label', `Prendre une place avec ${o.prenom} à ${o.heure}`);
-    btn.addEventListener('click', ()=>{ closeSheets(); openTake(o.id); });
+    btn.addEventListener('click', ()=>{ closeSheets(); exigeIdentite(()=> openTake(o.id)); });
     item.appendChild(txt); item.appendChild(btn);
     box.appendChild(item);
   });
@@ -722,14 +837,14 @@ function openSheetEl(el, focus){
 }
 function closeSheets(){
   backdrop.classList.remove('open');
-  [sheet, takeSheet, driveSheet].forEach(el => el.classList.remove('open'));
+  [sheet, takeSheet, driveSheet, identSheet].forEach(el => el.classList.remove('open'));
   takeTargetId = null;
   driveTargetId = null;
   if(lastFocus && lastFocus.focus) lastFocus.focus();
   lastFocus = null;
 }
 function feuillesOuvertes(){
-  return [sheet, takeSheet, driveSheet].filter(el => el.classList.contains('open'));
+  return [sheet, takeSheet, driveSheet, identSheet].filter(el => el.classList.contains('open'));
 }
 document.addEventListener('keydown', (e)=>{
   const ouverte = feuillesOuvertes()[0];
@@ -761,13 +876,15 @@ document.getElementById('f-arrivee').addEventListener('change', renderSuggestion
 function openSheet(){
   setTab(currentTab);
   document.getElementById('f-time').value = prochainCreneau();
-  document.getElementById('f-name').value = myName;
   document.getElementById('f-note').value = '';
   document.getElementById('f-seats').value = 2;
-  setError('f-name','err-name',false);
-  openSheetEl(sheet, document.getElementById('f-name'));
+  openSheetEl(sheet, document.getElementById('f-site'));
 }
-document.getElementById('fab-add').addEventListener('click', openSheet);
+document.getElementById('fab-add').addEventListener('click', ()=> exigeIdentite(openSheet));
+document.getElementById('btn-ident-cancel').addEventListener('click', ()=>{
+  apresIdent = null; closeSheets();
+});
+document.getElementById('btn-ident-confirm').addEventListener('click', confirmIdent);
 document.getElementById('btn-cancel').addEventListener('click', closeSheets);
 document.getElementById('btn-take-cancel').addEventListener('click', closeSheets);
 document.getElementById('btn-take-confirm').addEventListener('click', confirmTake);
@@ -776,27 +893,32 @@ document.getElementById('btn-drive-confirm').addEventListener('click', confirmDr
 backdrop.addEventListener('click', closeSheets);
 
 document.getElementById('btn-confirm').addEventListener('click', async ()=>{
-  const prenom = document.getElementById('f-name').value.trim();
   const site = document.getElementById('f-site').value;
   const arrivee = document.getElementById('f-arrivee').value;
   const heure = document.getElementById('f-time').value;
   const places = parseInt(document.getElementById('f-seats').value, 10) || 1;
   const note = document.getElementById('f-note').value.trim();
-  setError('f-name','err-name',!prenom);
-  if(!prenom) return;
 
   await pendant(document.getElementById('btn-confirm'), async ()=>{
     const r = await envoyer('/api/annonces', 'POST',
-      { type: currentTab, prenom, personne, site, arrivee, heure, places, note });
-    if(r.ok){ myName = prenom; ecritNom(prenom); closeSheets(); render(); return; }
+      { type: currentTab, site, arrivee, heure, places, note });
+    if(r.ok){ closeSheets(); render(); return; }
     render();
-    flash("Publication impossible pour l'instant.");
+    if(r.data.erreur === 'deja_engage'){ closeSheets(); flash(messageEngage(r.data)); }
+    else flash("Publication impossible pour l'instant.");
   });
 });
 
 (async function init(){
   renderFiltres();
   setTab('offre');
+  // Le lien périmé revient ici, drapeau en main : il faut le dire, sinon
+  // l'écran se contente de ne rien faire.
+  if(new URLSearchParams(location.search).get('ident') === 'perime'){
+    history.replaceState(null, '', location.pathname);
+    flash('Ce lien a expiré ou a déjà servi. Demandez-en un autre.');
+  }
+  await litSession();
   await rafraichir();
   // Cinq secondes : c'est le coup de feu de 11h55 qui commande, pas la charge.
   setInterval(()=>{ if(!feuillesOuvertes().length) rafraichir(); }, 5000);

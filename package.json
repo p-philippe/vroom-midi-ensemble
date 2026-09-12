@@ -4,6 +4,18 @@
   "private": true,
   "type": "module",
   "description": "Vroom ! — Midi ensemble. Covoiturage RIA entre collègues, DDTM22.",
-  "engines": { "node": ">=20" },
-  "dependencies": { "pg": "^8.13.1" }
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "nodemailer": "^10.0.9",
+    "pg": "^8.13.1"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8"
+  },
+  "scripts": {
+    "essais": "node essais/scenarios.js",
+    "local": "node essais/serveur-local.js"
+  }
 }

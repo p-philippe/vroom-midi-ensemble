@@ -96,7 +96,13 @@ fonctionnent : on peut prendre une place, et on peut répondre à une demande.*
 1bis.8. ✅ « Je l'emmène » sur une demande : le conducteur publie son trajet et
         la personne qui cherchait y est d'emblée à bord ; la demande disparaît
 
-1bis.9. ⬜ **Double rôle : conducteur fantôme.** Constaté en production le
+1bis.9. ✅ **Double rôle : conducteur fantôme.** — réglé le 12/09/2026 par la
+        règle d'exclusion du 1bis.11, qui en est la forme générale. C'est la
+        solution (b) qui l'emporte, sans passer par le 5.1 : au lieu de rendre
+        l'annonce modifiable, la base refuse le second engagement et
+        l'utilisateur retire le premier. Le garde-fou (c) devient inutile : ce
+        n'est plus un avertissement, c'est un refus motivé.
+        Constat d'origine : Constaté en production le
         08/09/2026. Le formulaire force un rôle par saisie — le toggle propose
         *ou* cherche — mais rien n'empêche de publier les deux, et rien ne les
         réconcilie ensuite. Vérifié : une personne publie une offre à 12:05,
@@ -142,8 +148,24 @@ fonctionnent : on peut prendre une place, et on peut répondre à une demande.*
         trajets déjà en base à des heures libres (rien, ils s'affichent tels
         quels et disparaissent le lendemain).
 
-1bis.11. ⬜ **Un seul trajet par personne et par jour — règle d'exclusion.**
-        Demandé le 12/09/2026. Un usager fait un trajet, et un seul : soit
+1bis.11. ✅ **Un seul trajet par personne et par jour — règle d'exclusion.**
+        Demandé et livré le 12/09/2026.
+
+        Tenue par la base : deux index partiels — `annonces (jour, personne)`
+        sur les ouvertes, `passagers (jour, personne)` — et, pour l'exclusion
+        entre les deux tables qu'aucun index ne peut couvrir, un verrou sur la
+        ligne de la personne au début de chaque transaction qui l'engage. Deux
+        clics simultanés du même agent s'exécutent l'un après l'autre.
+
+        **Une demande n'est pas un engagement**, décidé à l'écriture : chercher
+        une place est un souhait, pas un trajet. La compter aurait interdit de
+        prendre la place qu'on cherche, et fait tomber les enchaînements 1bis.6
+        à 1bis.8. Elle se ferme d'elle-même quand elle aboutit.
+
+        Le refus nomme ce qui bloque : « Vous conduisez déjà à 12:05. Retirez
+        votre trajet avant de monter avec quelqu'un. »
+
+        Spécification d'origine : Un usager fait un trajet, et un seul : soit
         comme conducteur, soit comme passager. Jamais les deux, jamais
         plusieurs fois.
 
@@ -165,8 +187,10 @@ fonctionnent : on peut prendre une place, et on peut répondre à une demande.*
         - la règle ne vaut que sur les annonces `ouverte` : une annulée ou une
           demande pourvue ne bloque rien
 
-        Prérequis : **identité réelle (4.4)**, elle-même sans mot de passe
-        (4.4bis). Sur des jetons de navigateur,
+        Prérequis levé le 12/09/2026 : l'identité réelle (4.4bis) est en
+        place, donc la règle ne se contourne plus en changeant d'appareil et
+        ne bloque plus à tort l'agent qui passe du poste au téléphone.
+        Réserve d'origine : Sur des jetons de navigateur,
         la règle est contournable en changeant d'appareil, et pire, elle
         bloquerait à tort l'agent qui passe de son poste à son téléphone.
         Applicable telle quelle pour un petit groupe ; solide seulement après
@@ -178,9 +202,11 @@ fonctionnent : on peut prendre une place, et on peut répondre à une demande.*
         soit le retour revient dans le périmètre, et 1bis.4 est rouvert.
         Retenu par défaut : la première lecture.
 
-Limite connue : faute d'identité réelle, un passager embarqué par un conducteur
-est reconnu à son prénom (badge « À bord », il ne peut pas reprendre une place
-deux fois). Les homonymes ne sont pas gérés — réglé au 4.4, identité réelle.
+~~Limite connue : faute d'identité réelle, un passager est reconnu à son
+prénom.~~ Levée le 12/09/2026 : chacun a une identité stable, et la base tient
+« une personne, une place ». Les homonymes s'affichent toujours pareil à
+l'écran — deux Sophie restent deux « Sophie » sur le panneau —, mais le
+serveur, lui, ne les confond plus.
 
 ## Lot 3 · Unification
 *Dépend du lot 1bis, et du lot 2 quand il sera relancé.*
@@ -250,15 +276,29 @@ bac à sable (cf. 1.4).*
        480 requêtes/minute de 304 pour quarante personnes. Pas de websockets
        pour ça.
 
-4.4. Identité réelle — annuaire DDTM22, remplace la saisie libre du prénom, et
-     rattache les annonces à l'agent plutôt qu'au navigateur.
+4.4. ✅ **Pour l'essentiel, levé le 12/09/2026 par le 4.4bis** : l'identité est
+     stable, rattachée à l'agent et non au navigateur, et vaut sur tous ses
+     appareils. Ce qui reste de l'annuaire DDTM22 : il seul prouverait
+     l'appartenance à la maison, et lèverait les homonymes. Ni l'un ni l'autre
+     ne bloque un test entre volontaires.
+     Spécification d'origine : annuaire DDTM22, remplace la saisie libre du
+     prénom, et rattache les annonces à l'agent plutôt qu'au navigateur.
      *Remonté du lot 5.1 le 08/09/2026.* À plusieurs dizaines d'agents, sans
      identité stable le serveur ne peut ni savoir qui est à bord, ni empêcher
      une double réservation, ni laisser quelqu'un annuler depuis son téléphone
      ce qu'il a publié depuis son poste. La reconnaissance par prénom du lot
      1bis suffit à trois personnes, pas à trente : il y aura deux Sophie.
 
-4.4bis. ⬜ **Identification sans mot de passe — exigence posée le 12/09/2026.**
+4.4bis. ✅ **Identification sans mot de passe — livrée le 12/09/2026.**
+     Lien magique par mail, adresse au choix de l'agent. Éprouvé de bout en
+     bout : le clic pose la session, le jeton disparaît de la barre d'adresse,
+     le cookie est hors de portée du JavaScript, un lien ne sert qu'une fois,
+     un lien inventé ne pose rien. Le même agent sur deux appareils est une
+     seule personne — et retire depuis son téléphone ce qu'il a publié depuis
+     son poste, ce qui était la limite du 4.4.
+     Sans `SMTP_URL`, le lien part dans le journal du serveur : le site
+     fonctionne, les liens se distribuent à la main le temps d'obtenir un
+     relais. Exigence d'origine :
      Aucun mot de passe, ni à créer, ni à retenir, ni à réinitialiser. Une
      appli de covoiturage du midi ne justifie pas un compte : le premier agent
      qui doit inventer un mot de passe pour réserver une place à 11h58 ferme
@@ -340,14 +380,12 @@ bac à sable (cf. 1.4).*
 - ~~Sur sa propre annonce, l'absence de bouton « Je monte » se lit comme une
   panne : rien ne dit que la ligne est la vôtre.~~ Signalé à l'usage le
   08/09/2026, corrigé le jour même par un badge « Vous ».
-- **L'API expose le jeton `personne` de chacun dans le panneau public.** Ce
-  jeton est à la fois l'identité et le secret : en le lisant dans la réponse,
-  n'importe qui peut retirer l'annonce d'un autre, ou le désinscrire d'un
-  trajet. Démontré involontairement en supprimant les annonces de test.
-  Correctif prévu : le client envoie son jeton en en-tête sur le GET, et le
-  serveur ne renvoie que des booléens `mienne` / `a_bord`, jamais les jetons.
-  Non corrigé — à faire avant d'ouvrir à un groupe plus large. Même pièce que
-  le 4.4bis : séparer l'identité publique de la preuve secrète.
+- ~~**L'API expose le jeton `personne` de chacun dans le panneau public.**~~
+  **Corrigé le 12/09/2026.** Le panneau ne renvoie plus aucun identifiant, ni
+  celui des annonces ni celui des passagers : seulement `mienne`, `a_bord`, et
+  les prénoms. L'identité vient du cookie, jamais du corps de la requête — le
+  client ne dit plus qui il est, il le prouve. Vérifié : un agent ne peut pas
+  retirer l'annonce d'un autre, et la réponse ne contient ni jeton ni adresse.
 
 ## Lot 5 · Durcissement
 *Dépend du lot 4. L'identité réelle en est sortie : elle est devenue un
@@ -381,16 +419,15 @@ extranets inclus. Version en vigueur RGAA 4.1.2 ; RGAA 5 annoncé pour fin 2026.
    Sans canal, l'appli ne peut que l'afficher sur un panneau que personne ne
    regarde à cet instant. Argument concret en faveur du mail Mélanie plutôt
    que du « on se retrouve sur le parking »
-2. Double rôle (1bis.9) et règle d'exclusion (1bis.11) : case « peut
-   conduire », annonce unique modifiable, ou simple garde-fou ? Décision
-   produit. Depuis le 12/09/2026, la demande est plus ferme qu'un garde-fou :
-   un engagement par personne et par jour, tenu par la base
-3. À partir de combien de testeurs l'annuaire réel (4.4) devient-il
-   obligatoire ? Le document le donne pour prérequis du serveur ; on a déployé
-   sans, avec des jetons de navigateur, ce qui tient pour une poignée de
-   volontaires et pas au-delà. ~~Reste à choisir le mécanisme.~~ Tranché le
-   12/09/2026 : lien magique par mail, sans mot de passe, à l'adresse choisie
-   par l'agent (4.4bis). Ne reste que la question du seuil
+2. ~~Double rôle (1bis.9) et règle d'exclusion (1bis.11).~~ **Tranché et livré
+   le 12/09/2026** : un engagement par personne et par jour, tenu par la base.
+   Reste ouverte, mais elle ne bloque plus rien : la case « j'ai une voiture,
+   mais je préfère monter » (1bis.9.a), qui rendrait visible le blocage social
+   — plusieurs cherchent, plusieurs ont leur voiture, personne ne se propose
+3. ~~À partir de combien de testeurs l'annuaire réel (4.4) devient-il
+   obligatoire ?~~ Sans objet depuis le 12/09/2026 : l'identité est stable et
+   durable, le test peut s'ouvrir. Ce que l'annuaire apporterait encore — la
+   preuve d'appartenance à la maison — relève de la reprise DSI
 4. Nom de domaine (4.2) — ne bloque rien, l'adresse Vercel fonctionne
 
 ## Mis de côté — Lot 2 domicile-travail
