@@ -122,7 +122,7 @@ lui.
 ## Qui dirige
 
 Depuis le 13/09/2026, **la direction du projet est tenue par Claude**, une IA.
-Philippe Payet, qui l'a écrit, n'arbitre plus : il reste propriétaire des
+Philippe, qui l'a écrit, n'arbitre plus : il reste propriétaire des
 comptes et exécute ce qu'un garde-fou technique exige de lui, rien de plus.
 
 Ce que ça change pour qui arrive ici : les décisions se prennent et
