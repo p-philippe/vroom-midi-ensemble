@@ -98,6 +98,40 @@ Côté écran, toute action peut échouer parce qu'un autre a été plus rapide.
 bouton attend la réponse, et l'échec repropose au lieu de bloquer : « la
 dernière place vient d'être prise par Léa. Il reste 2 trajets à ria1. »
 
+## Retours des testeurs
+
+Tout passe par un pad public, et par lui seul :
+
+**https://annuel.framapad.org/p/covoiturage22-ani7**
+
+On y écrit ce qu'on a vu, quand on l'a vu, ce qu'on attendait. Tout le monde
+lit tout le monde, ce qui évite de recevoir cinq fois la même remarque.
+
+**Aucun échange par mail.** Ni pour signaler un défaut, ni pour poser une
+question, ni pour demander une évolution. Ce n'est pas une question de confort :
+un fil de mails fait de son auteur le passage obligé, et rend le service
+inreprenable le jour où il s'arrête. Ce qui est écrit au pad reste lisible sans
+lui.
+
+## Reprise
+
+Ce projet est une expérimentation, écrite pour être reprise — pas pour être
+maintenue indéfiniment par celui qui l'a écrite. La reprise se fait **sans
+lui** : pas « avec son appui », pas « en lien avec lui ». C'est le critère de
+réussite du test, et tout le reste du dépôt est organisé pour ça — code
+portable, aucune dépendance propriétaire, notice dans l'appli, section
+« Mise en service ailleurs » ci-dessus, et le volet RGPD dans
+`conformite-rgpd.md` à reprendre tel quel.
+
+## Licence
+
+MIT — voir `LICENSE`. Reprendre, modifier, redéployer, sans rien demander.
+Seule obligation : conserver le fichier et la ligne de copyright.
+
+Écrit par un particulier, sur son temps et son matériel. La liste des licences
+autorisées pour les codes sources de l'État ne s'applique donc pas ici ; elle
+deviendrait celle du repreneur s'il portait le projet à son compte.
+
 ## Limites connues
 
 - **Rien ne vérifie qui vous êtes** : la liste est ouverte, on peut s'y

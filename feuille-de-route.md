@@ -4,7 +4,7 @@
 
 Pensée simple, accessible, fluide, souple : écran unique, web app légère (KISS/YAGNI).
 
-Dernière mise à jour : 12/09/2026 — **en ligne**, avec les vrais lieux et
+Dernière mise à jour : 13/09/2026 — **en ligne**, avec les vrais lieux et
 les créneaux, sur
 https://vroom-midi-ensemble.vercel.app (Vercel + Postgres Neon, région Francfort).
 Le volet RGPD est sorti de ce document : voir `conformite-rgpd.md`.
@@ -457,6 +457,126 @@ extranets inclus. Version en vigueur RGAA 4.1.2 ; RGAA 5 annoncé pour fin 2026.
      pluriannuel. Montant de la sanction : à vérifier.
 6.3. Afficher la mention d'information RGPD (texte issu de `conformite-rgpd.md`)
 
+## Lot 7 · Ouverture — retours des testeurs, reprise, code libre
+*Ce lot ne touche pas au code de l'appli : il organise ce qui l'entoure
+pendant le test réel (4.6), et prépare la sortie de scène de son auteur.*
+
+7.1. ✅ **Les retours passent par un framapad, et par lui seul.**
+     Pad ouvert le 13/09/2026 :
+     https://annuel.framapad.org/p/covoiturage22-ani7
+     Rien à installer, aucun compte à créer. Chacun écrit ce qu'il a vu, quand
+     il l'a vu ; tout le monde lit tout le monde, ce qui évite de recevoir cinq
+     fois la même remarque.
+     Le lien est dans l'en-tête de l'appli, « Donner mon avis », à côté de
+     celui de la notice — une seule adresse à diffuser, comme au 6.0bis.
+
+     **Aucun échange par mail.** Ni pour signaler un défaut, ni pour poser une
+     question, ni pour demander une évolution. Un retour envoyé par courrier
+     n'est pas traité : il est renvoyé au pad. La règle n'est pas de confort,
+     elle est structurelle — un fil de mails fait de Philippe le point de
+     passage obligé, et rend le service inreprenable le jour où il s'arrête.
+     Ce qui est écrit au pad reste lisible sans lui.
+
+     **Renseignement libre, pas de trame** — décidé le 13/09/2026. On écrit ce
+     qu'on veut, comme on veut : une gêne, une idée, une phrase jetée. Un
+     formulaire à rubriques ferait taire ceux qui n'ont qu'une remarque en
+     passant. Seule une introduction est posée en tête : comment ça marche,
+     pas de mail, qui répond, ce qu'est cette appli, la reprise à venir et la
+     licence libre.
+
+     **Qui tient le pad : Claude** — convenu le 13/09/2026. C'est lui, et lui
+     seul, qui répond aux usagers ; Philippe n'y écrit pas et se prononce
+     uniquement sur ce qui remonte. Relève une fois par semaine (tâche
+     planifiée, lundi 9h) et à la demande.
+     Ce que Claude fait seul : accuser réception, expliquer ce que l'appli
+     fait déjà, renvoyer à la notice, corriger un défaut manifeste.
+     Ce qui remonte toujours : s'engager sur une évolution, promettre une
+     date, arbitrer entre deux demandes contradictoires, revenir sur une
+     décision inscrite ici.
+     Cohérent avec le reste du lot : le pad reste lisible par quiconque, et
+     rien de ce qui s'y dit ne dépend d'un fil privé.
+
+7.2. ⬜ **Un service doit prendre le relais, en pleine autonomie.**
+     L'appli est une expérimentation (cf. constat d'audit, point 2) : elle a
+     vocation à être reprise, pas à être maintenue indéfiniment par celui qui
+     l'a écrite. La reprise se fait sans lui — pas « avec son appui », pas
+     « en lien avec lui » : sans lui. C'est le critère de réussite du test.
+
+     Ce qui rend la reprise possible est déjà tenu, et doit le rester :
+     - code portable, sans dépendance propriétaire (4.1) — Postgres et SMTP
+       standards, redéployables ailleurs sans réécriture
+     - identité en trois marches, la dernière étant le SSO agent de l'État
+       (4.4bis), qui est l'affaire du service repreneur
+     - volet RGPD documenté et transmissible (`conformite-rgpd.md`), à remettre
+       tel quel au moment de la reprise
+     - notice de prise en main dans l'appli (6.0bis), donc rien à transmettre
+       de vive voix pour l'usage courant
+
+     ✅ **Le `README` de reprise est écrit** (13/09/2026) : variables
+     d'environnement, schéma, procédure de déploiement, ce que le serveur
+     garantit et ce qui a été volontairement laissé de côté. Une section
+     « Reprise » y pose la règle en toutes lettres — sans lui. Une page, pas
+     un dossier.
+
+7.3. ⬜ **Le code est publié sur GitHub.** Dépôt public, dès le test bêta et
+     non à la fin : un service ne peut pas reprendre ce qu'il ne peut pas lire.
+     La publication n'est pas un geste militant, c'est la condition du 7.2.
+     ✅ **Vérifié le 13/09/2026 : aucun secret**, ni dans les fichiers suivis,
+     ni dans les dix commits d'historique. `.env.local`, `.vercel/` et les
+     sauvegardes sont ignorés ; `DATABASE_URL` et compagnie ne vivent qu'en
+     variables d'environnement. Le dépôt est prêt à partir.
+     Reste le geste : créer le dépôt distant et pousser.
+
+     Rien n'oblige à publier : le code est celui d'un particulier, pas d'une
+     administration. C'est un choix, et c'est le choix qui rend le 7.2
+     possible — un service ne reprend pas ce dont il devrait demander
+     l'autorisation à chaque modification.
+
+7.4. ✅ **Licence MIT — tranché le 13/09/2026**, fichier `LICENSE` posé à la
+     racine. N'importe qui peut reprendre, modifier, redéployer, sans rien
+     demander. Une seule obligation : conserver le fichier et la ligne de
+     copyright dans les copies.
+
+     Pourquoi MIT plutôt que CC0, qui est plus ouverte encore : le droit moral
+     français est **inaliénable**. On ne peut pas renoncer à sa paternité même
+     en le signant, si bien que CC0 — écrite pour le copyright américain — se
+     replie ici sur sa licence de secours et produit un résultat approximatif.
+     MIT ne demande de renoncer à rien : elle autorise, ce qui est valide sans
+     réserve. Et l'attribution ne gêne aucun repreneur — un fichier texte à
+     garder, rien à afficher, rien à négocier.
+
+     Raisonnement conservé ci-dessous : il documente pourquoi Creative Commons
+     ne convenait pas, question qui reviendra.
+
+     **Creative Commons ne convient pas ici** : ces licences sont faites pour
+     des textes et des images, pas pour du logiciel, et Creative Commons
+     déconseille elle-même de les employer pour du code (elles ne disent rien
+     du code source, ni des brevets, ni de la garantie). L'intention est la
+     bonne, l'outil non.
+
+     Les deux équivalents pour du code, par ordre d'ouverture :
+     - **CC0 1.0** — renoncement au droit d'auteur, aussi près du domaine
+       public que le droit français le permet. C'est bien du Creative Commons,
+       mais c'est le seul de leurs instruments prévu pour ça. Aucune obligation
+       pour le repreneur, pas même celle de citer
+     - **MIT** — deux paragraphes, une seule obligation : conserver la mention
+       de la licence. C'est la licence par défaut du monde logiciel, comprise
+       partout, y compris par un service informatique qui n'a pas envie de
+       lire un contrat
+
+     **Le choix appartient à l'auteur, et à lui seul.** L'appli est écrite par
+     un particulier, sur son temps et son matériel : il en est titulaire des
+     droits, et rien ne l'oblige à suivre la liste des licences autorisées pour
+     les codes sources de l'État — celle-ci ne vaut que pour le code produit
+     *par* une administration. Elle deviendrait la sienne si la DDTM22
+     reprenait le projet à son compte ; ce serait alors sa décision, pas une
+     contrainte sur cette publication-ci.
+
+     Corollaire à ne pas perdre de vue : si le projet doit rester un travail
+     personnel, mieux vaut qu'il le reste franchement — écrit hors du temps de
+     service, sans moyen de l'administration, et sans commande de sa part.
+     C'est aussi ce qui rend le don au repreneur propre et sans discussion.
+
 ---
 
 ## Décisions bloquantes en attente
@@ -476,7 +596,9 @@ extranets inclus. Version en vigueur RGAA 4.1.2 ; RGAA 5 annoncé pour fin 2026.
    obligatoire ?~~ Sans objet depuis le 12/09/2026 : l'identité est stable et
    durable, le test peut s'ouvrir. Ce que l'annuaire apporterait encore — la
    preuve d'appartenance à la maison — relève de la reprise DSI
-4. Nom de domaine (4.2) — ne bloque rien, l'adresse Vercel fonctionne
+4. ~~Licence du dépôt (7.4)~~ **Tranché le 13/09/2026 : MIT**, fichier posé.
+   Ne bloque plus la publication sur GitHub (7.3)
+5. Nom de domaine (4.2) — ne bloque rien, l'adresse Vercel fonctionne
 
 ## Mis de côté — Lot 2 domicile-travail
 Pas à l'ordre du jour, conservé pour mémoire. Specs prévues :

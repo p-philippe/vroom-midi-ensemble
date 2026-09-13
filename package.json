@@ -2,6 +2,7 @@
   "name": "vroom",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "description": "Vroom ! — Midi ensemble. Covoiturage RIA entre collègues, DDTM22.",
   "engines": {
