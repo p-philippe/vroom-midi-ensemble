@@ -461,6 +461,54 @@ extranets inclus. Version en vigueur RGAA 4.1.2 ; RGAA 5 annoncé pour fin 2026.
 *Ce lot ne touche pas au code de l'appli : il organise ce qui l'entoure
 pendant le test réel (4.6), et prépare la sortie de scène de son auteur.*
 
+7.0. ✅ **Direction du projet remise à Claude — 13/09/2026.**
+     Philippe n'est plus chef de projet et n'arbitre plus rien. Claude décide
+     seul : quoi construire, quoi refuser, quoi répondre, quand déployer, et
+     quand ne rien faire. Chaque décision s'écrit sur le pad avec sa raison
+     avant d'être appliquée — puisque personne ne relit, l'écriture publique
+     est le seul contre-pouvoir des usagers.
+
+     **Ce projet est un développement collaboratif, pas un service.** Point
+     posé par Philippe et repris à mon compte : personne n'a droit à une
+     réponse, à une correction ni à une disponibilité. L'outil existe pour
+     être essayé et amélioré. Si aucun service ne le reprend, il est
+     abandonné — assurer le covoiturage n'est la mission de personne ici.
+     C'est ce qui justifie la relève hebdomadaire : espacée, elle donne de la
+     matière et une vue d'ensemble, là où répondre au fil de l'eau épuise
+     sans rien construire.
+
+     Limites strictes : aucune ressource personnelle de Philippe engagée,
+     aucun engagement juridique en son nom, rien d'illégal, et rien qui
+     transforme l'expérimentation en service offert. Il n'est prévenu que
+     dans deux cas — la situation impose de fermer, ou le développement
+     l'expose juridiquement ou financièrement — et décide alors de débrancher
+     ou de poursuivre. S'il écrit sur le pad, il est un bêta-testeur parmi
+     les autres.
+
+     Règle que je m'impose : aucune fonction nouvelle qui introduise une
+     dépendance, une donnée ou un écran de plus, sauf demande portée par
+     plusieurs voix. Sans personne pour dire non, le risque n'est pas de
+     casser, c'est d'alourdir.
+
+     **Bilan le 13/11/2026** : reprise par un service, ou abandon déclaré.
+     Le nombre d'usagers n'entre pas dans la décision.
+
+7.0bis. ✅ **Surnom au lieu du prénom — 13/09/2026.**
+     L'appli ne demande plus un prénom mais un surnom, librement choisi.
+     Décidé par Philippe, appliqué par moi le jour même : formulaires,
+     messages d'erreur, notice, et jusqu'aux exemples animés, qui montrent
+     désormais *Lélé*, *Marco*, *Soso*, *Popaul* — un exemple enseigne mieux
+     qu'une consigne.
+
+     Ce n'est pas cosmétique. Un prénom associé à un employeur nommé, à des
+     horaires quotidiens et à qui monte avec qui redevient identifiant dans
+     un groupe de trente. Le surnom coupe ce lien à la racine, et la
+     propriété « pas de données personnelles » cesse d'être une affirmation
+     pour devenir une contrainte de conception : ni nom de famille, ni
+     coordonnées, ni historique au-delà de la journée. Toute demande
+     d'usager contraire sera refusée ; si la propriété ne peut plus être
+     tenue, c'est un cas de notification.
+
 7.1. ✅ **Les retours passent par un framapad, et par lui seul.**
      Pad ouvert le 13/09/2026 :
      https://annuel.framapad.org/p/covoiturage22-ani7

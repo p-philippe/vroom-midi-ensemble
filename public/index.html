@@ -403,9 +403,9 @@
   <p class="recap">Personne ne tient la liste : vous seul corrigez ou retirez
   votre nom. Et ce qu'on n'a pas revu depuis un mois s'efface tout seul.</p>
   <div class="field">
-    <label for="m-name">Prénom</label>
-    <input type="text" id="m-name" maxlength="30" autocomplete="given-name">
-    <p class="err" id="err-mname">Indiquez votre prénom.</p>
+    <label for="m-name">Surnom</label>
+    <input type="text" id="m-name" maxlength="30" autocomplete="nickname">
+    <p class="err" id="err-mname">Indiquez un surnom.</p>
   </div>
   <div class="sheet-actions">
     <button class="btn-cancel" id="btn-moi-cancel">Annuler</button>
@@ -427,9 +427,9 @@
     <div class="site-filter" id="gens" role="group" aria-labelledby="lbl-gens"></div>
   </div>
   <div class="field" id="nouveau-field" hidden>
-    <label for="i-name">Votre prénom</label>
-    <input type="text" id="i-name" placeholder="Ex. Philippe" maxlength="30" autocomplete="given-name">
-    <p class="err" id="err-iname">Indiquez votre prénom.</p>
+    <label for="i-name">Votre surnom</label>
+    <input type="text" id="i-name" placeholder="Ex. Philou, Riton, Vélo22" maxlength="30" autocomplete="nickname">
+    <p class="err" id="err-iname">Indiquez un surnom.</p>
   </div>
   <div class="sheet-actions">
     <button class="btn-cancel" id="btn-ident-new">Je n'y suis pas</button>
@@ -557,7 +557,7 @@ async function renommer(){
   await pendant(document.getElementById('btn-moi-rename'), async ()=>{
     const r = await envoyer('/api/session', 'PUT', { prenom: nom });
     if(r.code === 409){
-      flash(`Il y a déjà ${r.data.nom} dans la liste. Ajoutez une initiale pour vous distinguer.`);
+      flash(`« ${r.data.nom} » est déjà pris. Choisissez-en un autre.`);
       return;
     }
     if(!r.ok){ flash("Correction impossible pour l'instant."); return; }
@@ -608,7 +608,7 @@ function exigeIdentite(action){
 function openIdent(){
   document.getElementById('ident-recap').textContent = gens.length
     ? "Pas de mot de passe. Retrouvez-vous dans la liste : c'est ce qui évite d'apparaître deux fois quand vous passez du poste au téléphone."
-    : "Pas de mot de passe. Donnez votre prénom une fois ; ensuite vous vous retrouverez dans la liste, sur n'importe quel appareil.";
+    : "Pas de mot de passe. Choisissez un surnom une fois ; ensuite vous vous retrouverez dans la liste, sur n'importe quel appareil.";
   modeNouveau(gens.length === 0);
   renderGens();
   openSheetEl(identSheet, identSheet.querySelector('#gens button, #i-name'));
@@ -653,7 +653,7 @@ async function confirmIdent(){
 async function entre(nom, nouveau){
   const r = await envoyer('/api/session', 'POST', { prenom: nom, nouveau });
   if(r.code === 409 && r.data.erreur === 'nom_pris'){
-    flash(`Il y a déjà ${r.data.nom} dans la liste. Choisissez-vous dedans — ou ajoutez une initiale, « ${r.data.nom} B. », si ce n'est pas vous.`);
+    flash(`« ${r.data.nom} » est déjà dans la liste. Si c'est vous, choisissez-vous dedans. Sinon, prenez un autre surnom.`);
     modeNouveau(false);
     return;
   }

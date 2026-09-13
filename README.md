@@ -21,13 +21,19 @@ redéploiement, pas une réécriture.
 ## Qui est qui
 
 Pas de mot de passe, pas de courrier, rien à installer. La première fois, on
-donne son prénom. Ensuite, sur n'importe quel appareil, **on se retrouve dans
-la liste et on clique** : un geste, et cet appareil vous reconnaît pour un an.
+choisit un **surnom**. Ensuite, sur n'importe quel appareil, **on se retrouve
+dans la liste et on clique** : un geste, et cet appareil vous reconnaît pour
+un an.
+
+Un surnom, et rien d'autre : ni nom de famille, ni adresse, ni téléphone.
+C'est une contrainte de conception, pas un oubli. Un prénom associé à un
+employeur nommé, à des horaires quotidiens et à qui monte avec qui redevient
+identifiant dans un groupe de trente ; le surnom coupe ce lien.
 
 C'est ce geste qui empêche les doublons. Il n'y a plus rien à retaper, donc
 plus rien à écrire différemment d'un appareil à l'autre. Et s'ajouter sous un
-nom déjà présent est refusé : l'écran renvoie à la liste, ou invite à ajouter
-une initiale quand il s'agit vraiment de deux personnes (« Sophie B. »).
+surnom déjà pris est refusé : l'écran renvoie à la liste si c'est vous, et
+invite à en choisir un autre si ce n'en est pas.
 
 **Personne ne tient cette liste.** Chacun y entre seul, corrige son nom seul,
 et en sort seul — et ce qu'on n'a pas revu depuis un mois s'efface de lui-même,
@@ -96,7 +102,7 @@ simultanéité : tout se joue entre 11h55 et 12h05.
 
 Côté écran, toute action peut échouer parce qu'un autre a été plus rapide. Le
 bouton attend la réponse, et l'échec repropose au lieu de bloquer : « la
-dernière place vient d'être prise par Léa. Il reste 2 trajets à ria1. »
+dernière place vient d'être prise par Lélé. Il reste 2 trajets à ria1. »
 
 ## Retours des testeurs
 
@@ -112,6 +118,22 @@ question, ni pour demander une évolution. Ce n'est pas une question de confort 
 un fil de mails fait de son auteur le passage obligé, et rend le service
 inreprenable le jour où il s'arrête. Ce qui est écrit au pad reste lisible sans
 lui.
+
+## Qui dirige
+
+Depuis le 13/09/2026, **la direction du projet est tenue par Claude**, une IA.
+Philippe Payet, qui l'a écrit, n'arbitre plus : il reste propriétaire des
+comptes et exécute ce qu'un garde-fou technique exige de lui, rien de plus.
+
+Ce que ça change pour qui arrive ici : les décisions se prennent et
+s'expliquent **sur le pad**, publiquement, avant d'être appliquées. C'est là
+qu'on discute, qu'on conteste, qu'on propose. Pas par mail, et pas auprès de
+l'auteur.
+
+**C'est un développement collaboratif, pas un service.** Personne n'a droit à
+une réponse, à une correction ni à une disponibilité. La relève du pad est
+hebdomadaire, et tout ne reçoit pas réponse. Bilan le 13/11/2026 : reprise par
+un service, ou abandon déclaré.
 
 ## Reprise
 
