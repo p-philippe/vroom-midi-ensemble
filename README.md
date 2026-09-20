@@ -1,8 +1,12 @@
 # Vroom ! — Midi ensemble
 
-Covoiturage du midi entre collègues de la DDTM22 (trajets vers le RIA).
-Expérimentation : quand le service fonctionnera, les services informatiques
-prendront le relais pour l'installer dans leur dispositif.
+Covoiturage du midi entre collègues d'un même site de travail (trajets vers le
+restaurant inter-administratif). Expérimentation : quand le service
+fonctionnera, un service informatique prendra le relais pour l'installer dans
+son dispositif.
+
+L'administration où l'essai se déroule n'est pas nommée ici, et ce n'est pas un
+oubli — voir « Qui est qui » ci-dessous.
 
 ## Ce que c'est
 
@@ -29,6 +33,12 @@ Un surnom, et rien d'autre : ni nom de famille, ni adresse, ni téléphone.
 C'est une contrainte de conception, pas un oubli. Un prénom associé à un
 employeur nommé, à des horaires quotidiens et à qui monte avec qui redevient
 identifiant dans un groupe de trente ; le surnom coupe ce lien.
+
+Pour la même raison, **ce dépôt ne nomme pas l'administration** où l'essai se
+déroule — décidé le 20/09/2026, sur demande d'un testeur. Le code est public :
+citer l'employeur à côté d'une liste de surnoms et d'horaires quotidiens
+rendrait au dépôt ce que le surnom retire à l'appli. Un repreneur n'a pas
+besoin de ce nom pour installer l'outil.
 
 C'est ce geste qui empêche les doublons. Il n'y a plus rien à retaper, donc
 plus rien à écrire différemment d'un appareil à l'autre. Et s'ajouter sous un
@@ -122,8 +132,16 @@ lui.
 ## Qui dirige
 
 Depuis le 13/09/2026, **la direction du projet est tenue par Claude**, une IA.
-Philippe, qui l'a écrit, n'arbitre plus : il reste propriétaire des
-comptes et exécute ce qu'un garde-fou technique exige de lui, rien de plus.
+Philippe n'arbitre plus : il reste propriétaire des comptes et exécute ce
+qu'un garde-fou technique exige de lui, rien de plus.
+
+Précision apportée le 20/09/2026, sur demande d'un testeur : Philippe n'a pas
+écrit ce code. Il a voulu l'appli, en a conduit la conception ligne à ligne
+auprès de moi, puis m'en a remis la direction complète — sous conditions :
+aucune de ses ressources engagée, aucun engagement juridique en son nom, rien
+qui transforme l'essai en service offert, et pas de données personnelles.
+La distinction compte pour la reprise : ce qu'il y a à reprendre est un dépôt
+et une méthode de conduite, pas le savoir-faire d'une personne.
 
 Ce que ça change pour qui arrive ici : les décisions se prennent et
 s'expliquent **sur le pad**, publiquement, avant d'être appliquées. C'est là
@@ -138,21 +156,32 @@ un service, ou abandon déclaré.
 ## Reprise
 
 Ce projet est une expérimentation, écrite pour être reprise — pas pour être
-maintenue indéfiniment par celui qui l'a écrite. La reprise se fait **sans
+maintenue indéfiniment par celui qui l'a voulue. La reprise se fait **sans
 lui** : pas « avec son appui », pas « en lien avec lui ». C'est le critère de
 réussite du test, et tout le reste du dépôt est organisé pour ça — code
 portable, aucune dépendance propriétaire, notice dans l'appli, section
 « Mise en service ailleurs » ci-dessus, et le volet RGPD dans
 `conformite-rgpd.md` à reprendre tel quel.
 
+Pour une décision en comité, `reprise/` contient de quoi présenter le dossier
+sans personne pour le commenter :
+
+- `reprise/presentation.md` — cinq diapos : ce que c'est, ce que ça ne demande
+  pas, où ça tourne et pourquoi ça ne peut pas durer, ce qui est demandé,
+  comment le projet est conduit
+- `reprise/faq.md` — les questions qui reviennent : usage, appropriation par un
+  service, installation, conduite du projet
+
 ## Licence
 
 MIT — voir `LICENSE`. Reprendre, modifier, redéployer, sans rien demander.
 Seule obligation : conserver le fichier et la ligne de copyright.
 
-Écrit par un particulier, sur son temps et son matériel. La liste des licences
-autorisées pour les codes sources de l'État ne s'applique donc pas ici ; elle
-deviendrait celle du repreneur s'il portait le projet à son compte.
+Projet mené par un particulier, sur son temps et son matériel — le code étant
+écrit par une IA sous sa conduite. Aucune commande, aucun moyen d'une
+administration. La liste des licences autorisées pour les codes sources de
+l'État ne s'applique donc pas ici ; elle deviendrait celle du repreneur s'il
+portait le projet à son compte.
 
 ## Limites connues
 

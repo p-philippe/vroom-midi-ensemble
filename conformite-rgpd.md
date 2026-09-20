@@ -25,9 +25,11 @@ l'article 4.1. Elle allège le traitement (pas de compte, pas
 d'interconnexion RH, pas de données de connexion), elle ne le supprime pas.
 
 Conséquence pratique : si l'outil passe par le DPD et le registre, le
-responsable de traitement est la DDTM22. S'il est déployé en dehors, sur un
-hébergement personnel, le responsable de traitement est Philippe PAYET
-personnellement.
+responsable de traitement est l'administration employeuse. S'il est déployé en
+dehors, sur un hébergement personnel — ce qui est le cas aujourd'hui — le
+responsable de traitement est une personne privée, à titre personnel. C'est le
+principal argument en faveur d'une reprise, et contre le fait de laisser
+tourner l'essai indéfiniment.
 
 ## Pourquoi avant le choix d'hébergement, et non après
 
@@ -38,14 +40,14 @@ démarche conditionne donc le 4.1 de la feuille de route.
 
 ## Actions
 
-1. Saisir le DPD. Interlocuteur à identifier d'abord : les DDTM étant des
-   directions départementales interministérielles, la fonction peut être portée
-   par le SGCD, la préfecture ou le ministère de tutelle. À vérifier auprès du
-   SG ou sur l'intranet — se tromper d'interlocuteur coûte des semaines.
+1. Saisir le DPD. Interlocuteur à identifier d'abord : dans une direction
+   départementale interministérielle, la fonction peut être portée par le SGCD,
+   la préfecture ou le ministère de tutelle. À vérifier auprès du SG ou sur
+   l'intranet — se tromper d'interlocuteur coûte des semaines.
 2. Contenu de la saisine, une page : ce que fait l'outil, quelles données, sur
    qui, combien de personnes, où c'est hébergé, combien de temps c'est conservé.
 3. Définir la base légale et la durée de conservation.
-4. Inscription au registre des traitements de la DDTM22.
+4. Inscription au registre des traitements de l'administration repreneuse.
 5. Trancher l'hébergement au regard de l'avis rendu.
 6. Prévenir la hiérarchie : un outil qui traite des données d'agents ne se
    déploie pas sous le radar, même bénévolement.

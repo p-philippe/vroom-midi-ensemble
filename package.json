@@ -4,7 +4,7 @@
   "private": true,
   "license": "MIT",
   "type": "module",
-  "description": "Vroom ! — Midi ensemble. Covoiturage RIA entre collègues, DDTM22.",
+  "description": "Vroom ! — Midi ensemble. Covoiturage du midi entre collègues d'un même site.",
   "engines": {
     "node": ">=20"
   },

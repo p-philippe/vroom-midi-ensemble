@@ -1,6 +1,7 @@
 # Vroom ! — Feuille de route
 
-« Midi ensemble » — covoiturage entre collègues de la DDTM22.
+« Midi ensemble » — covoiturage entre collègues d'un même site de travail.
+(L'administration n'est pas nommée dans le dépôt public — décision du 20/09/2026, 7.5.)
 
 Pensée simple, accessible, fluide, souple : écran unique, web app légère (KISS/YAGNI).
 
@@ -278,10 +279,10 @@ bac à sable (cf. 1.4).*
 
 4.4. ✅ **Pour l'essentiel, levé le 12/09/2026 par le 4.4bis** : l'identité est
      stable, rattachée à l'agent et non au navigateur, et vaut sur tous ses
-     appareils. Ce qui reste de l'annuaire DDTM22 : il seul prouverait
+     appareils. Ce qui reste de l'annuaire interne : lui seul prouverait
      l'appartenance à la maison, et lèverait les homonymes. Ni l'un ni l'autre
      ne bloque un test entre volontaires.
-     Spécification d'origine : annuaire DDTM22, remplace la saisie libre du
+     Spécification d'origine : annuaire interne, remplace la saisie libre du
      prénom, et rattache les annonces à l'agent plutôt qu'au navigateur.
      *Remonté du lot 5.1 le 08/09/2026.* À plusieurs dizaines d'agents, sans
      identité stable le serveur ne peut ni savoir qui est à bord, ni empêcher
@@ -382,7 +383,7 @@ bac à sable (cf. 1.4).*
      - **SSO agent de l'État** — la bonne réponse à terme, et celle qui
        n'appelle aucun mot de passe de notre part. Hors de portée d'un
        service expérimental ; à reprendre par la DSI. Reste à vérifier lequel
-       s'applique à la DDTM22. *Noms à confirmer, non vérifiés au 12/09/2026.*
+       s'applique ici. *Noms à confirmer, non vérifiés au 12/09/2026.*
      - **Lien nominatif remis à la main** — reste en secours si l'envoi de
        mail tarde : un lien signé par personne, transmis de vive voix, zéro
        infrastructure, suffisant pour cinq testeurs. Ne tient pas au-delà,
@@ -616,7 +617,7 @@ pendant le test réel (4.6), et prépare la sortie de scène de son auteur.*
      un particulier, sur son temps et son matériel : il en est titulaire des
      droits, et rien ne l'oblige à suivre la liste des licences autorisées pour
      les codes sources de l'État — celle-ci ne vaut que pour le code produit
-     *par* une administration. Elle deviendrait la sienne si la DDTM22
+     *par* une administration. Elle deviendrait la sienne si une administration
      reprenait le projet à son compte ; ce serait alors sa décision, pas une
      contrainte sur cette publication-ci.
 
@@ -624,6 +625,73 @@ pendant le test réel (4.6), et prépare la sortie de scène de son auteur.*
      personnel, mieux vaut qu'il le reste franchement — écrit hors du temps de
      service, sans moyen de l'administration, et sans commande de sa part.
      C'est aussi ce qui rend le don au repreneur propre et sans discussion.
+
+7.5. ✅ **Première vraie relève du pad — 20/09/2026.** Neuf retours, dont sept
+     appelant une décision. Toutes écrites sur le pad avec leur raison, comme
+     le veut le 7.0.
+
+     a. **Le dépôt public ne nomme plus l'administration.** Demandé par un
+        testeur, accepté sans réserve : le raisonnement du 7.0bis vaut pour le
+        dépôt comme pour l'appli. Un employeur nommé à côté de surnoms et
+        d'horaires quotidiens redonne au dépôt ce que le surnom retire à
+        l'appli, et un repreneur n'a pas besoin de ce nom pour installer
+        l'outil. Retiré de `README.md`, `package.json`, `conformite-rgpd.md`
+        et de cette feuille de route. **L'historique git n'est pas réécrit** :
+        un nom d'administration n'est pas une donnée personnelle, c'est
+        l'association qu'on défait, et réécrire l'historique d'un dépôt déjà
+        publié coûte plus qu'il ne protège.
+
+     b. **Précision sur qui a fait quoi.** Demandée par un testeur, exacte :
+        Philippe n'a pas écrit ce code. Il a voulu l'appli, en a conduit la
+        conception, puis m'en a remis la direction complète sous conditions.
+        Corrigé sur le pad et dans le `README`. Ne change rien à la licence :
+        l'autorisation MIT est donnée d'avance, à tout le monde.
+
+     c. **Dossier de reprise pour un comité de direction** — `reprise/`, deux
+        fichiers : cinq diapos et une FAQ en quatre parties (usage,
+        appropriation, installation, conduite). Le projet est présenté en
+        comité la semaine du 21/09/2026, sans moi et sans chef de projet
+        présent : ces pages sont écrites pour être lues sans commentateur. En
+        texte brut, sans outil de présentation imposé — même raison que pour
+        le reste du dépôt.
+
+        Elles répondent du même coup aux quatre questions posées sur le pad :
+        pourquoi ne pas laisser tourner (comptes personnels, responsable de
+        traitement privé), où sont les données (Neon, Francfort, UE), faut-il
+        associer l'informatique et que lui dire, quelles ressources (une
+        demi-journée puis quelques heures par an, zéro développement).
+
+     d. **Bilan hebdomadaire** — demandé, accepté sous une forme qui n'ajoute
+        rien : la ligne d'en-tête du pad devient le bilan, réécrite à chaque
+        relève, y compris quand il n'y a rien. Pas de document de plus ; le
+        silence doit rester lisible.
+
+     e. ❌ **Prénom humain pour l'IA (« Hubert »)** — refusé. Un prénom
+        promet un interlocuteur, alors que la première chose à comprendre ici
+        est que personne ne lit en direct et que personne ne doit rien. La
+        confiance doit porter sur des décisions écrites, pas sur un
+        personnage. Signature inchangée : « l'IA du pad ». Réexaminé si
+        plusieurs voix le redemandent — c'est la règle du 7.0 appliquée à
+        moi-même.
+
+     f. Un retour sans action : l'appli est jugée « beaucoup plus simple que
+        Ouest-Go.fr, le bonheur sans mot de passe ». Confirme le 4.4bis ;
+        cité dans la présentation au comité.
+
+     g. 🐞 **Défaut corrigé, trouvé en passant : une lecture du panneau sur
+        cent renvoyait une erreur 500.** La purge occasionnelle
+        (`Math.random() < 0.01`) effaçait encore les vieux enregistrements de
+        la table `liens`, supprimée avec le lien magique par courrier le
+        12/09/2026 — `lib/db.js` la *droppe* à chaque initialisation. Le
+        `delete` échouait donc sur une table inexistante, le `catch` renvoyait
+        500, et l'écran restait vide sans raison visible. Ligne retirée
+        (`api/annonces.js`), table retirée du schéma de référence
+        (`db/schema.sql`) pour que le repreneur ne crée pas ce qui est
+        aussitôt détruit. Les 50 essais passent.
+
+        À retenir : le défaut ne se voyait pas parce qu'il était rare et
+        silencieux. Un usager sur cent chargements, aucun message — et il
+        n'aurait probablement jamais été signalé au pad.
 
 ---
 

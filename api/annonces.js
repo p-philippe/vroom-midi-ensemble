@@ -14,7 +14,6 @@ export default async function handler(req, res){
       // Purge des jours passés. Table minuscule : une fois sur cent suffit.
       if(Math.random() < 0.01){
         await query(`delete from annonces where jour < current_date - interval '2 days'`);
-        await query(`delete from liens where cree_le < now() - interval '7 days'`);
       }
       const corps = await panneau(moi?.id);
       // Le panneau n'est plus le même pour tout le monde : « c'est la vôtre »

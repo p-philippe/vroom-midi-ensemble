@@ -46,16 +46,10 @@ create table if not exists personnes (
   vue_le  timestamptz not null default now()
 );
 
-create table if not exists liens (
-  jeton      text primary key,        -- empreinte, jamais le jeton
-  email      text not null,
-  prenom     text not null,
-  ip         text not null default '',
-  cree_le    timestamptz not null default now(),
-  expire_le  timestamptz not null,
-  utilise_le timestamptz              -- un lien ne sert qu'une fois
-);
-create index if not exists liens_cadence on liens (email, cree_le);
+-- Il y avait ici une table « liens », pour le lien magique par courrier.
+-- Écartée le 12/09/2026 : personne ne doit avoir à distribuer des accès.
+-- Retirée du schéma le 20/09/2026 ; `lib/db.js` la supprime encore des bases
+-- déjà en service.
 
 create table if not exists sessions (
   jeton       text primary key,       -- empreinte, jamais le jeton
