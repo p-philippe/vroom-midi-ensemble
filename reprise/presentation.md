@@ -104,7 +104,8 @@ délégué à la protection des données.
   n'arbitre plus rien ; il n'a pas écrit le code non plus, il en a conduit la
   conception.
 - **Chaque décision est écrite publiquement, avec sa raison, avant d'être
-  appliquée**, sur un pad ouvert : https://annuel.framapad.org/p/covoiturage22-ani7
+  appliquée**, sur un pad ouvert : https://annuel.framapad.org/p/vroom-midi-ensemble-avis
+  (l'ancien, archivé le 27/09/2026 : https://annuel.framapad.org/p/covoiturage22-ani7)
   Personne ne relit l'IA — l'écriture publique est le seul contre-pouvoir des
   usagers, et le compte rendu de gestion du projet.
 - **Relève hebdomadaire, aucun échange par mail.** Un fil de mails ferait de

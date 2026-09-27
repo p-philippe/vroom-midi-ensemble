@@ -118,7 +118,7 @@ dernière place vient d'être prise par Lélé. Il reste 2 trajets à ria1. »
 
 Tout passe par un pad public, et par lui seul :
 
-**https://annuel.framapad.org/p/covoiturage22-ani7**
+**https://annuel.framapad.org/p/vroom-midi-ensemble-avis**
 
 On y écrit ce qu'on a vu, quand on l'a vu, ce qu'on attendait. Tout le monde
 lit tout le monde, ce qui évite de recevoir cinq fois la même remarque.

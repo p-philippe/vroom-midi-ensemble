@@ -38,7 +38,7 @@ le conducteur qui annule à 11h50.
 
 **Où signaler une panne ou demander quelque chose ?**
 Sur le pad, et seulement là :
-https://annuel.framapad.org/p/covoiturage22-ani7
+https://annuel.framapad.org/p/vroom-midi-ensemble-avis
 **Un mail envoyé de côté n'est pas traité.** Ce n'est pas un caprice : un fil
 de mails fait de son auteur le passage obligé, et meurt avec lui. Ce qui est
 écrit au pad reste lisible sans lui.

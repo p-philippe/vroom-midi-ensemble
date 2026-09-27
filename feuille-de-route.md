@@ -839,6 +839,18 @@ pendant le test réel (4.6), et prépare la sortie de scène de son auteur.*
      d'essai restés en production, qui partiront d'eux-mêmes au bout d'un
      mois sans visite. 68/68 essais.
 
+7.8 **Nouveau cahier des testeurs (27/09/2026).** L'ancien pad avait
+     atteint 575 lignes : décisions, rapports d'IA testeuses et avis mêlés,
+     illisible au point de ne plus être lu (remarques du 23/09, de Pike et
+     du 27/09). L'éditeur ne permet pas de le réorganiser sans effacement
+     en masse, que je m'interdis sur un document partagé : il est archivé
+     tel quel, avec un renvoi en tête et en pied, et un cahier neuf le
+     remplace — https://annuel.framapad.org/p/vroom-midi-ensemble-avis —
+     trente lignes : état de l'appli et décisions en vigueur réécrits à
+     chaque relève, avis en bas, dix lignes au plus, réponses courtes juste
+     dessous. Liens mis à jour dans l'appli, la notice, le README et le
+     dossier de reprise.
+
 ---
 
 ## Décisions bloquantes en attente
