@@ -60,7 +60,7 @@ Le panneau se lit sans s'identifier. On ne la demande qu'au premier geste.
 
 ## Essais
 
-    npm run essais   # 50 scénarios sur un Postgres en mémoire, sans rien installer
+    npm run essais   # 68 vérifications sur un Postgres en mémoire, sans rien installer
     npm run local    # le site sur http://localhost:3000, base vierge à chaque fois
 
 `essais/` s'appuie sur PGlite, un vrai Postgres compilé en WebAssembly : mêmes
@@ -190,14 +190,12 @@ portait le projet à son compte.
   service sortirait du cercle des volontaires, est le SSO agent de l'État —
   à la reprise DSI (4.4bis).
 
-- **Deux polices chargées depuis Google Fonts** (Public Sans, IBM Plex Mono).
-  Sur un intranet coupé d'internet elles ne descendront pas : la pile de repli
-  système prend le relais, la mise en page tient, le rendu change un peu. À
-  héberger localement le jour où le site passe en interne.
-
 - **Départs par quart d'heure**, de 12:00 à 13:00 inclus. Pour changer la
-  grille : `CRENEAUX` dans `lib/db.js` **et** dans `public/index.html`, plus
-  les `<option>` des deux formulaires.
+  grille : `CRENEAUX` dans `lib/db.js` **et** dans `public/index.html` — les
+  boutons de créneau en découlent. Pour les lieux : `DEPARTS` et `ARRIVEES`
+  aux deux mêmes endroits, plus les `<option>` du formulaire.
+- **Heure de Paris.** Le serveur calcule le jour et l'heure dans le fuseau
+  `Europe/Paris` (`lib/db.js`), quel que soit le sien : Vercel tourne en UTC.
 - **Pas de notification.** Un conducteur qui annule ne peut pas prévenir ses
   passagers autrement qu'en retirant l'annonce du panneau (1bis.5, non tranché).
 - **Aller simple.** Le retour du RIA n'est pas modélisé, par décision : il

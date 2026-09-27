@@ -10,9 +10,17 @@
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" href="/icon-192.png" type="image/png" sizes="192x192">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="preload" href="/polices/public-sans.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+  /* Polices servies par le site lui-même (licence OFL) : les charger chez
+     Google transmettait l'adresse IP de chaque visiteur à un tiers. */
+  @font-face{font-family:'Public Sans';font-style:normal;font-weight:400 700;font-display:swap;
+    src:url(/polices/public-sans.woff2) format('woff2');}
+  @font-face{font-family:'IBM Plex Mono';font-style:normal;font-weight:500;font-display:swap;
+    src:url(/polices/ibm-plex-mono-500.woff2) format('woff2');}
+  @font-face{font-family:'IBM Plex Mono';font-style:normal;font-weight:600;font-display:swap;
+    src:url(/polices/ibm-plex-mono-600.woff2) format('woff2');}
+</style>
 <style>
   :root{
     --paper:#F7F5F0;
@@ -32,6 +40,9 @@
     --pip-empty:#C9D2CC;
   }
   *{box-sizing:border-box;}
+  /* Un display:flex de classe l'emporte sur l'attribut hidden : le bandeau
+     « Première fois ? » ne se fermait jamais. Règle posée une fois pour toutes. */
+  [hidden]{display:none !important;}
   html,body{margin:0;padding:0;}
   body{
     background:var(--desk);
@@ -63,7 +74,6 @@
     border:1px solid var(--teal);background:var(--teal-soft);border-radius:10px;
     padding:11px 12px;margin-bottom:16px;
   }
-  .bandeau[hidden]{display:none;}
   .bandeau a{font-size:13px;font-weight:600;color:var(--teal-dark);line-height:1.4;}
   .bandeau button{
     flex:0 0 auto;min-width:44px;min-height:44px;background:none;border:none;
@@ -176,7 +186,6 @@
     padding:12px 14px;font-size:13px;font-weight:500;line-height:1.4;
     box-shadow:0 8px 24px rgba(23,33,28,.26);
   }
-  .flash[hidden]{display:none;}
 
   .sheet-backdrop{display:none;position:fixed;inset:0;background:rgba(23,33,28,.32);z-index:10;}
   .sheet-backdrop.open{display:block;}
@@ -222,7 +231,9 @@
 
   .choices{display:flex;gap:6px;}
   .choices button{
-    flex:1;min-height:44px;border:1px solid var(--line-2);border-radius:8px;
+    /* min-width:0 et padding réduit : sinon « 13:00 » débordait du formulaire
+       sous 330 px de large. */
+    flex:1;min-width:0;padding:0 2px;min-height:44px;border:1px solid var(--line-2);border-radius:8px;
     background:var(--card);color:var(--ink-2);
     font-family:inherit;font-size:13.5px;font-weight:600;cursor:pointer;
   }
@@ -765,17 +776,19 @@ function suisABord(a){ return a.a_bord === true; }
    et au 26/09/2026. */
 function messageEngage(d, actionTentee){
   const quand = d && d.heure ? ` à ${d.heure}` : " aujourd'hui";
-  const deja = d && d.quoi === 'conduit'
-    ? `Vous conduisez déjà${quand}.`
+  // Le remède dépend de l'engagement : un conducteur retire son trajet, un
+  // passager se désiste. Dire « désistez-vous » à un conducteur l'égarait.
+  const [deja, remede] = d && d.quoi === 'conduit'
+    ? [`Vous conduisez déjà${quand}.`, 'Retirez votre trajet']
     : d && d.quoi === 'monte'
-      ? `Vous avez déjà une place${quand}.`
-      : `Vous avez déjà un trajet${quand}.`;
-  const suite = {
-    monter:   " Désistez-vous, ou retirez votre trajet, avant de monter ailleurs.",
-    conduire: " Retirez votre trajet avant d'en publier un autre.",
-    chercher: " Retirez votre trajet avant de publier une recherche."
-  }[actionTentee] || " Désistez-vous, ou retirez votre trajet, d'abord.";
-  return deja + suite;
+      ? [`Vous avez déjà une place${quand}.`, 'Désistez-vous']
+      : [`Vous avez déjà un trajet${quand}.`, 'Désistez-vous ou retirez votre trajet'];
+  const but = {
+    monter:   'avant de monter ailleurs',
+    conduire: 'avant de publier un trajet',
+    chercher: 'avant de publier une recherche'
+  }[actionTentee] || "d'abord";
+  return `${deja} ${remede} ${but}.`;
 }
 function estPassee(heure){
   const [h,m] = heure.split(':').map(Number);

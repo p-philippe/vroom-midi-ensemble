@@ -10,9 +10,17 @@
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" href="/icon-192.png" type="image/png" sizes="192x192">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="preload" href="/polices/public-sans.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+  /* Polices servies par le site lui-même (licence OFL) : les charger chez
+     Google transmettait l'adresse IP de chaque visiteur à un tiers. */
+  @font-face{font-family:'Public Sans';font-style:normal;font-weight:400 700;font-display:swap;
+    src:url(/polices/public-sans.woff2) format('woff2');}
+  @font-face{font-family:'IBM Plex Mono';font-style:normal;font-weight:500;font-display:swap;
+    src:url(/polices/ibm-plex-mono-500.woff2) format('woff2');}
+  @font-face{font-family:'IBM Plex Mono';font-style:normal;font-weight:600;font-display:swap;
+    src:url(/polices/ibm-plex-mono-600.woff2) format('woff2');}
+</style>
 <style>
   :root{
     --paper:#F7F5F0; --desk:#EFEDE7; --card:#FFFFFF;
@@ -23,6 +31,9 @@
     --pip-empty:#C9D2CC;
   }
   *{box-sizing:border-box;}
+  /* Un display:flex de classe l'emporte sur l'attribut hidden : le bandeau
+     « Première fois ? » ne se fermait jamais. Règle posée une fois pour toutes. */
+  [hidden]{display:none !important;}
   html,body{margin:0;padding:0;}
   body{
     background:var(--desk);color:var(--ink);
@@ -195,10 +206,13 @@
 <!-- 1 -->
 <section class="etape">
   <h2><span class="num">1</span>Se nommer, une seule fois</h2>
-  <p>La première fois, vous choisissez un <b>surnom</b> — celui que vous voulez,
+  <p>Il n'y a pas de formulaire d'inscription à chercher : l'appli vous demande
+  qui vous êtes <b>au premier geste</b> — ajouter un créneau, « Je monte » ou
+  « Je l'emmène ». La première fois, vous choisissez un <b>surnom</b> — celui que vous voulez,
   pourvu que vos collègues vous reconnaissent. Ensuite, <b>vous vous retrouvez
   dans la liste et vous cliquez</b> — sur votre poste comme sur votre téléphone.
-  Pas de mot de passe, rien à installer.</p>
+  Pas de mot de passe, rien à installer. Un mois sans revenir, et le surnom
+  s'efface.</p>
   <div class="scene relatif">
     <div class="lbl">Choisissez-vous dans la liste</div>
     <div class="chips">
@@ -307,7 +321,7 @@
     </div>
     <span class="doigt boucle a-doigt" style="right:22px;bottom:66px;"></span>
     <div class="message boucle a-entre">Vous conduisez déjà à 12:15. Retirez votre
-    trajet avant de monter avec quelqu'un.</div>
+    trajet avant de monter ailleurs.</div>
   </div>
 </section>
 

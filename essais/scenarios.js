@@ -214,10 +214,14 @@ await (await import('../lib/db.js')).query(
   `update personnes set vue_le = now() - interval '40 days' where lower(nom)='fantome'`);
 const listeApres = (await new Agent('Y').appelle(session, 'GET')).corps.gens;
 verifie('il n’encombre plus la liste', !listeApres.includes('Fantome'));
-const repris = await new Agent('Fantome').identifie(true);
+const nouveauFantome = new Agent('Fantome');
+const repris = await nouveauFantome.identifie(true);
 verifie('et son nom est redevenu libre', repris.statusCode === 200, JSON.stringify(repris.corps));
-verifie('mais c’est bien la même ligne qui reprend',
+verifie('une seule fois dans la liste',
   (await new Agent('Z').appelle(session, 'GET')).corps.gens.filter(g=>g==='Fantome').length === 1);
+const ancienAppareil = await vieux.appelle(session, 'GET');
+verifie('l’ancien appareil n’hérite pas du surnom repris (audit du 27/09/2026)',
+  ancienAppareil.corps.connecte === false, JSON.stringify(ancienAppareil.corps));
 
 titre('11 · Un créneau déjà passé est refusé (relevé le 26/09/2026)');
 const soiree = new Agent('Soiree'); await soiree.identifie();
@@ -250,6 +254,63 @@ const offreDriver2 = await driver2.publie({ type:'offre', site:'Fréhel', arrive
 const monteApres = await rider.monte(offreDriver2.corps.id);
 verifie('Rider peut monter ailleurs — plus bloqué par le trajet annulé',
   monteApres.statusCode === 201, JSON.stringify(monteApres.corps));
+
+titre('14 · Le conducteur qui quitte la liste libère ses passagers (audit du 27/09/2026)');
+const partant = new Agent('Partant'); await partant.identifie();
+const offrePartant = await partant.publie({ type:'offre', site:'Fréhel', arrivee:'Impôts', heure:'12:30', places:2, note:'' });
+const laisse = new Agent('Laisse'); await laisse.identifie();
+verifie('Laisse monte avec Partant', (await laisse.monte(offrePartant.corps.id)).statusCode === 201);
+verifie('Partant se retire de la liste',
+  (await partant.appelle(session, 'DELETE', { body: { retirer: true } })).statusCode === 200);
+const autreOffre = await new Agent('Relais');
+await autreOffre.identifie();
+const offreRelais = await autreOffre.publie({ type:'offre', site:'Fréhel', arrivee:'Impôts', heure:'12:45', places:2, note:'' });
+const remonte = await laisse.monte(offreRelais.corps.id);
+verifie('Laisse peut monter ailleurs', remonte.statusCode === 201, JSON.stringify(remonte.corps));
+
+titre('15 · Revenir par le cookie compte comme revenir (audit du 27/09/2026)');
+const habitue = new Agent('Habitue'); await habitue.identifie();
+const { query: q } = await import('../lib/db.js');
+await q(`update personnes set vue_le = now() - interval '40 days' where lower(nom)='habitue'`);
+await habitue.panneau();   // il ouvre l'appli, comme chaque midi, sans se rechoisir
+const listeHabitue = (await new Agent('W').appelle(session, 'GET')).corps.gens;
+verifie('il reste dans la liste', listeHabitue.includes('Habitue'), JSON.stringify(listeHabitue));
+const usurpe = await new Agent('Habitue').identifie(true);
+verifie('et personne ne peut s’ajouter sous son surnom', usurpe.statusCode === 409);
+
+titre('16 · Prendre le surnom d’un oublié, en se renommant (audit du 27/09/2026)');
+const ancien = new Agent('Ancien'); await ancien.identifie();
+await q(`update personnes set vue_le = now() - interval '40 days' where lower(nom)='ancien'`);
+const renomme = new Agent('Renomme'); await renomme.identifie();
+const prise = await renomme.appelle(session, 'PUT', { body: { prenom: 'Ancien' } });
+verifie('le renommage passe, sans erreur serveur', prise.statusCode === 200, `${prise.statusCode} ${JSON.stringify(prise.corps)}`);
+
+titre('17 · Les oubliés sont vraiment effacés (audit du 27/09/2026)');
+const efface = new Agent('Efface'); await efface.identifie();
+await q(`update personnes set vue_le = now() - interval '40 days' where lower(nom)='efface'`);
+await (await import('../lib/session.js')).purgeOublies();
+const { rows: restes } = await q(`select 1 from personnes where lower(nom)='efface'`);
+verifie('la ligne n’existe plus en base', restes.length === 0);
+const { rows: sessionsRestantes } = await q(
+  `select 1 from sessions s left join personnes p on p.id = s.personne_id where p.id is null`);
+verifie('aucune session orpheline', sessionsRestantes.length === 0);
+
+titre('18 · L’heure est celle de Paris, quel que soit le serveur (audit du 27/09/2026)');
+const db = await import('../lib/db.js');
+db.__regleHorloge(null);
+const paris = () => new Intl.DateTimeFormat('fr-FR', { timeZone:'Europe/Paris', hour:'2-digit', minute:'2-digit', hourCycle:'h23' }).format(new Date());
+const tzAvant = process.env.TZ;
+const lectures = [];
+for(const tz of ['UTC', 'America/New_York', 'Pacific/Auckland']){
+  process.env.TZ = tz;
+  lectures.push({ tz, hm: db.heureCourante(), attendu: paris(), locale: `${String(new Date().getHours()).padStart(2,'0')}` });
+}
+if(tzAvant === undefined) delete process.env.TZ; else process.env.TZ = tzAvant;
+verifie('heureCourante suit Paris sous trois fuseaux de serveur',
+  lectures.every(l => l.hm === l.attendu), JSON.stringify(lectures));
+verifie('alors que l’heure locale du processus, elle, change bien',
+  new Set(lectures.map(l => l.locale)).size > 1, JSON.stringify(lectures));
+db.__regleHorloge('00:00');
 
 console.log(`\n${ok} vérifications passées, ${ko} en échec.\n`);
 process.exit(ko ? 1 : 0);

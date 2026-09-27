@@ -1,2 +1,3 @@
+# Expérimentation interne : rien à indexer.
 User-agent: *
-Allow: /
+Disallow: /

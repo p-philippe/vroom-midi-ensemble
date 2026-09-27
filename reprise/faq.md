@@ -121,13 +121,12 @@ ailleurs ». Elle tient en une page, et n'a pas de secret.
 
 **Il n'y a pas de dépendances ?**
 Presque pas, et c'est délibéré : pas de framework, pas de bundler, une seule
-bibliothèque (le client Postgres). Deux polices sont chargées depuis Google
-Fonts — sur un intranet coupé d'internet elles ne descendront pas, la mise en
-page tient quand même, et elles sont à héberger localement le jour où le site
-passe en interne.
+bibliothèque (le client Postgres). Les deux polices sont servies par le site
+lui-même (dossier `public/polices`, licence OFL) : aucun appel à un tiers, et
+rien ne manque sur un intranet coupé d'internet.
 
 **Comment vérifier que ça marche ?**
-`npm run essais` rejoue cinquante scénarios sur un vrai PostgreSQL compilé en
+`npm run essais` rejoue près de soixante-dix vérifications sur un vrai PostgreSQL compilé en
 WebAssembly : aucune base à brancher. `npm run local` lance le site sur le
 poste, avec une base vierge.
 

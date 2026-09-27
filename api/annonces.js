@@ -2,7 +2,7 @@ import {
   query, transaction, panneau, valide, nouvelId, aujourdhui, json, configManquante,
   verrouillePersonne, engagement, clotDemande, heureCourante
 } from '../lib/db.js';
-import { personneCourante } from '../lib/session.js';
+import { personneCourante, purgeOublies } from '../lib/session.js';
 import crypto from 'node:crypto';
 
 export default async function handler(req, res){
@@ -11,9 +11,11 @@ export default async function handler(req, res){
     const moi = await personneCourante(req);
 
     if(req.method === 'GET'){
-      // Purge des jours passés. Table minuscule : une fois sur cent suffit.
+      // Purge des jours passés et des surnoms oubliés. Tables minuscules : une
+      // fois sur cent suffit.
       if(Math.random() < 0.01){
         await query(`delete from annonces where jour < current_date - interval '2 days'`);
+        await purgeOublies();
       }
       const corps = await panneau(moi?.id);
       // Le panneau n'est plus le même pour tout le monde : « c'est la vôtre »

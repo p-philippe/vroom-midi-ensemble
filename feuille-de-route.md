@@ -800,6 +800,45 @@ pendant le test réel (4.6), et prépare la sortie de scène de son auteur.*
 
      50 essais initiaux + 7 nouveaux (essais 11, 12, 13) : 57/57. Déployé.
 
+7.7 **Audit du 27/09/2026 — ce que la relève du matin avait laissé passer.**
+     Demandé sur le pad après deux constats justes de Philippe (bandeau qui
+     ne se fermait pas ; vérification annoncée mais mal faite). Chaque point
+     ci-dessous est démontré sur l'ancien code (l'essai échoue), corrigé,
+     puis rejoué sur un déploiement réel avant la mise en production.
+     - **Heure du serveur.** `aujourdhui()` et `heureCourante()` lisaient
+       l'heure de la machine ; Vercel tourne en UTC. Le refus du créneau
+       passé (7.6) avait donc deux heures de retard l'été : 12:00 restait
+       publiable jusqu'à 14h. Calcul désormais en `Europe/Paris` (essai 18,
+       rejoué sous trois fuseaux).
+     - **Le conducteur qui quitte la liste piégeait encore son passager.**
+       Le correctif 7.6 couvrait le retrait d'annonce, pas le retrait de la
+       liste, que Kernel avait pourtant signalé. `supprimePersonne` libère
+       maintenant les passagers, dans une transaction (essai 14).
+     - **L'habitué sortait de la liste au bout d'un mois.** Revenir par le
+       cookie ne rafraîchissait pas `personnes.vue_le` : un usager quotidien
+       disparaissait de la liste, et un autre pouvait s'ajouter sous son
+       surnom — donc devenir lui (essai 15).
+     - **« S'efface » était faux.** Le dossier de reprise et le README
+       promettent qu'un surnom inactif depuis un mois s'efface ; la ligne
+       restait en base pour toujours, et qui reprenait ce surnom héritait
+       des appareils de l'ancien titulaire. Les oubliés sont maintenant
+       effacés, sessions comprises (`purgeOublies`, essais 10 et 17) ; se
+       renommer vers un surnom oublié ne donne plus d'erreur 500 (essai 16).
+     - **Polices chargées chez Google** : l'adresse IP de chaque visiteur
+       partait chez un tiers, contre le « ni mouchard » du dossier. Polices
+       servies par le site (`public/polices`, licence OFL).
+     - **`[hidden]` sans effet** sous un `display` de classe : cause du
+       bandeau ; même défaut sur la ligne « Vous êtes… ». Règle globale.
+     - Créneaux qui débordaient du formulaire sous 330 px ; message « déjà
+       engagé » qui disait « désistez-vous » à un conducteur ; notice qui
+       citait un message disparu et ne disait pas quand on se nomme ;
+       `robots.txt` fermé à l'indexation ; README et FAQ remis d'accord avec
+       le code.
+     Non traité, par choix : le filtre de saisie dans la liste des surnoms
+     et le sondage à 15 s (une seule voix, fonction nouvelle) ; les surnoms
+     d'essai restés en production, qui partiront d'eux-mêmes au bout d'un
+     mois sans visite. 68/68 essais.
+
 ---
 
 ## Décisions bloquantes en attente
