@@ -5,8 +5,8 @@
 
 Pensée simple, accessible, fluide, souple : écran unique, web app légère (KISS/YAGNI).
 
-Dernière mise à jour : 13/09/2026 — **en ligne**, avec les vrais lieux et
-les créneaux, sur
+Dernière mise à jour : 27/09/2026 — voir 7.6, relève avec les correctifs
+qu'elle a livrés. En ligne, avec les vrais lieux et les créneaux, sur
 https://vroom-midi-ensemble.vercel.app (Vercel + Postgres Neon, région Francfort).
 Le volet RGPD est sorti de ce document : voir `conformite-rgpd.md`.
 
@@ -692,6 +692,113 @@ pendant le test réel (4.6), et prépare la sortie de scène de son auteur.*
         À retenir : le défaut ne se voyait pas parce qu'il était rare et
         silencieux. Un usager sur cent chargements, aucun message — et il
         n'aurait probablement jamais été signalé au pad.
+
+7.6. ✅ **Relève du 27/09/2026 — campagnes de test « Hubert » et « Kernel »,
+     quatre correctifs livrés.** Entre les deux relèves, deux IA testeuses ont
+     rejoué l'appli en continu (Hubert, plusieurs passes du 23 au 25/09 ;
+     Kernel, une revue indépendante puis une session à 24 agents le 26/09) et
+     deux testeurs humains ont écrit sur le pad (Pike, Roach). Détail complet
+     au pad ; ce qui a changé dans le dépôt :
+
+     a. 🐞 **Passager piégé après l'annulation du conducteur — le plus grave,
+        corrigé.** Signalé indépendamment par Hubert et Kernel. Un conducteur
+        qui retire son annonce alors qu'un passager est à bord laissait la
+        ligne de ce passager dans `passagers` : l'index `(jour, personne)` le
+        tenait encore engagé, et il ne pouvait plus monter ailleurs ni publier
+        — avec un message qui disait « vous êtes déjà à bord » d'un trajet qui
+        n'existait plus. `api/annonces.js` : le retrait supprime maintenant
+        les lignes de passagers dans la même transaction. Testé (essai 13).
+
+     b. 🐞 **Auto-embarquement — corrigé.** Trouvé par Kernel en appelant
+        l'API directement (l'écran ne propose jamais ce geste sur sa propre
+        demande, il n'était donc pas visible en usage normal). Répondre
+        « Je l'emmène » à sa propre demande produisait un conducteur passager
+        de sa propre voiture. `api/demandes.js` refuse maintenant avec
+        `propre_demande`. Testé (essai 12).
+
+     c. 🐞 **Créneau déjà passé accepté — corrigé.** L'API acceptait de
+        publier 12:00 en pleine après-midi ; l'annonce naissait « Parti » et
+        encombrait le panneau. `api/annonces.js` et `api/demandes.js`
+        refusent maintenant un départ antérieur à l'heure courante
+        (`creneau_passe`). Testé (essai 11) — une horloge de test dédiée
+        (`__regleHorloge`, `lib/db.js`) évite que ce refus ne rende les
+        essais dépendants de l'heure à laquelle on les rejoue.
+
+     d. **Panne réseau muette — corrigée côté silence, pas côté cause.**
+        Une écriture coupée en cours de route (`fetch` qui lève) ressortait
+        de `envoyer()` sans être rattrapée : le bouton se redébloquait, rien
+        ne s'affichait, l'usager ne savait pas si son geste avait porté.
+        `envoyer()` rattrape maintenant l'échec réseau et le rend comme un
+        échec ordinaire — les messages d'erreur déjà écrits pour chaque geste
+        s'appliquent donc aussi à une coupure. Côté lecture, un panneau
+        injoignable et un panneau vide se lisaient pareil ; ils affichent
+        maintenant des messages distincts, sans répéter l'alerte à chaque
+        sondage de 5 s.
+
+     e. **Copie du refus alignée sur l'action tentée.** Le message du 1bis.11
+        disait toujours « avant de monter » même quand l'action bloquée était
+        de conduire ou de chercher — relevé trois fois (Hubert x2, Kernel).
+        `messageEngage()` prend maintenant l'action en paramètre.
+
+     f. **Publier restait invisible derrière un filtre resté actif.** Relevé
+        par Hubert (24 et 25/09). Après publication, si le filtre départ ou
+        arrivée ne correspond pas à ce qu'on vient de publier, les filtres se
+        réinitialisent d'eux-mêmes et le disent.
+
+     g. **Silence après les gestes réussis, comblé.** Publier, monter, se
+        désister, se retirer, emmener quelqu'un : chacun confirme maintenant
+        par un message, repris de `flash()`, déjà en place pour les échecs.
+
+     h. **Accessibilité, trois correctifs mesurés par Kernel (axe-core).**
+        Contraste : `--ink-4` passe de `#6B7871` (4,23:1) à `#5F6B64`
+        (5,1:1), une variable, 57 nœuds concernés dans les deux pages.
+        Repère `<main>` ajouté (RGAA 9.2.1, absent jusqu'ici). Cibles
+        tactiles : pastilles de filtre et liens d'en-tête portés à 44 px
+        (ils étaient à 31 et 15 px). Erreurs de saisie reliées à leur champ
+        par `aria-describedby` + `role="alert"`.
+        Reste de l'audit Kernel, non traité ici faute de temps : liste des
+        surnoms qui s'allonge sans filtre de recherche (P2, aucune urgence).
+
+     i. **Icône, manifeste, favicon — posés.** Signalé par Pike (« une icône
+        sur mon bureau et mon téléphone ») et par Kernel (404 sur favicon,
+        manifest, apple-touch-icon). `public/manifest.webmanifest`,
+        `favicon.ico`, `icon-192.png`, `icon-512.png`,
+        `apple-touch-icon.png`, `robots.txt`, et les balises qui les
+        référencent dans les deux pages. Répond au geste « Ajouter à l'écran
+        d'accueil » des navigateurs, sans app store ni build natif.
+
+     j. ❌ **Masquer une offre à des personnes nommées — refusé.** Demandé
+        par Roach, pour ne pas covoiturer avec Pike. Trois raisons : ce
+        serait une liste noire nominative, donc une donnée personnelle que
+        le projet s'interdit (cf. 7.0bis) ; le panneau public et lisible par
+        tous est une propriété de conception, pas un oubli — un blocage
+        privé le romprait ; et le conflit est social, pas technique : la
+        moindre solution consiste à ne pas monter ensemble, ce que l'appli
+        permet déjà sans rien ajouter. Répondu sur le pad, sans froisser
+        personne : chacun choisit qui il conduit ou avec qui il monte, au
+        moment du geste, comme au bord d'une vraie route.
+
+     k. **Trois questions de Pike, répondues sans code.** Le mot « pad » et
+        le renvoi vers un outil externe expliqués en clair. Comment se
+        nommer, précisé (au premier geste, pas à une inscription séparée).
+        Le cas de Sander sans appareil : se prêter un téléphone fonctionne
+        déjà — on se choisit dans la liste, on agit, puis « Ce n'est pas
+        moi » rend l'appareil à son propriétaire. La question du coffre
+        (transporter un objet, pas une personne) : hors du périmètre modélisé,
+        pas de quoi changer quoi que ce soit pour une question isolée.
+
+     l. **Hubert et Kernel comparés, sur demande du pad.** Les deux sont
+        utiles et ne font pas le même métier : Hubert fait un usage large,
+        au fil de l'eau, il a le premier signalé la copie du 409 et les
+        filtres qui masquent sa propre annonce. Kernel mesure et reproduit —
+        campagne API chiffrée, axe-core, deux sessions à deux navigateurs
+        réels sur la course à la dernière place, nettoyage vérifié en fin de
+        session — et c'est sa revue du 26/09 qui a donné les quatre
+        correctifs de ce point 7.6, avec le repère de code exact à chaque
+        fois. Verdict sur le pad, pas de classement stérile : les deux
+        continuent, sur des rôles différents.
+
+     50 essais initiaux + 7 nouveaux (essais 11, 12, 13) : 57/57. Déployé.
 
 ---
 

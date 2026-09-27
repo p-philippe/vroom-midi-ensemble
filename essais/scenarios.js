@@ -9,6 +9,12 @@ const session  = (await import('../api/session.js')).default;
 const annonces = (await import('../api/annonces.js')).default;
 const places   = (await import('../api/places.js')).default;
 const demandes = (await import('../api/demandes.js')).default;
+const { __regleHorloge } = await import('../lib/db.js');
+
+// Les CRENEAUX vont de 12:00 à 13:00 : une horloge de test fixée à minuit les
+// garde tous « à venir », quelle que soit l'heure à laquelle on rejoue ces
+// scénarios (cf. le refus du créneau passé, titre 11).
+__regleHorloge('00:00');
 
 /* --- de quoi appeler une fonction Vercel sans Vercel --------------------- */
 function reponse(){
@@ -212,6 +218,38 @@ const repris = await new Agent('Fantome').identifie(true);
 verifie('et son nom est redevenu libre', repris.statusCode === 200, JSON.stringify(repris.corps));
 verifie('mais c’est bien la même ligne qui reprend',
   (await new Agent('Z').appelle(session, 'GET')).corps.gens.filter(g=>g==='Fantome').length === 1);
+
+titre('11 · Un créneau déjà passé est refusé (relevé le 26/09/2026)');
+const soiree = new Agent('Soiree'); await soiree.identifie();
+__regleHorloge('23:00');
+const tropTard = await soiree.publie({ type:'offre', site:'Vallès', arrivee:'Impôts', heure:'12:15', places:1, note:'' });
+verifie('l’API refuse un créneau déjà passé', tropTard.statusCode === 400 && tropTard.corps.erreur === 'creneau_passe');
+__regleHorloge('00:00');   // on remet l'horloge pour la suite des essais
+
+titre('12 · On ne s’emmène pas soi-même (bug trouvé le 26/09/2026)');
+const theo = new Agent('Theo'); await theo.identifie();
+const demTheo = await theo.publie({ type:'demande', site:'Vallès', arrivee:'Impôts', heure:'12:45', places:1, note:'' });
+verifie('Théo publie une demande', demTheo.statusCode === 201);
+const soiMeme = await theo.emmene({ demande_id: demTheo.corps.id, heure:'12:45', places:2 });
+verifie('il ne peut pas répondre à sa propre demande',
+  soiMeme.statusCode === 409 && soiMeme.corps.erreur === 'propre_demande');
+const demTheoEncore = await theo.panneau();
+verifie('sa demande reste ouverte, elle n’a pas été consommée',
+  mien(demTheoEncore, demTheo.corps.id)?.mienne === true);
+
+titre('13 · Annuler une annonce libère ses passagers (bug du 26/09/2026)');
+const driver = new Agent('Driver'); await driver.identifie();
+const offreDriver = await driver.publie({ type:'offre', site:'Vallès', arrivee:'Rue du parc', heure:'12:00', places:2, note:'' });
+const rider = new Agent('Rider'); await rider.identifie();
+const monteRider = await rider.monte(offreDriver.corps.id);
+verifie('Rider monte à bord', monteRider.statusCode === 201);
+const retraitDriver = await driver.retire(offreDriver.corps.id);
+verifie('Driver retire son annonce, avec Rider à bord', retraitDriver.statusCode === 200);
+const driver2 = new Agent('Driver2'); await driver2.identifie();
+const offreDriver2 = await driver2.publie({ type:'offre', site:'Fréhel', arrivee:'Ploufragan', heure:'12:15', places:2, note:'' });
+const monteApres = await rider.monte(offreDriver2.corps.id);
+verifie('Rider peut monter ailleurs — plus bloqué par le trajet annulé',
+  monteApres.statusCode === 201, JSON.stringify(monteApres.corps));
 
 console.log(`\n${ok} vérifications passées, ${ko} en échec.\n`);
 process.exit(ko ? 1 : 0);

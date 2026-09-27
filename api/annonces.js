@@ -1,6 +1,6 @@
 import {
   query, transaction, panneau, valide, nouvelId, aujourdhui, json, configManquante,
-  verrouillePersonne, engagement, clotDemande
+  verrouillePersonne, engagement, clotDemande, heureCourante
 } from '../lib/db.js';
 import { personneCourante } from '../lib/session.js';
 import crypto from 'node:crypto';
@@ -40,6 +40,10 @@ export default async function handler(req, res){
         places: c.type === 'offre' ? c.places : 1
       });
       if(!v.ok) return json(res, 400, { erreur:'champs_invalides', champs: v.err });
+      // Le panneau ne modélise qu'aujourd'hui : un créneau déjà passé n'a pas
+      // de sens à publier. Relevé le 26/09/2026 — l'API l'acceptait jusque
+      // tard l'après-midi, créant une annonce morte « Parti » à la naissance.
+      if(v.out.heure < heureCourante()) return json(res, 400, { erreur:'creneau_passe' });
 
       const jour = aujourdhui();
       const issue = await transaction(async (cx)=>{
@@ -66,13 +70,23 @@ export default async function handler(req, res){
     if(req.method === 'DELETE'){
       // Retirer sa propre annonce. On marque, on ne supprime pas. L'identité
       // vient du cookie : on ne peut plus retirer celle d'un autre.
+      //
+      // Les passagers déjà à bord doivent partir avec l'annonce : sinon leur
+      // ligne survit dans `passagers`, l'index (jour, personne) les tient
+      // toujours engagés, et ils se retrouvent bloqués pour le reste du midi
+      // — piégés, pas seulement sans nouvelle. Bug relevé deux fois le
+      // 26/09/2026 (revue et session d'agents), confirmé en production.
       const { id } = req.body || {};
       if(!id) return json(res, 400, { erreur:'champs_invalides' });
-      const { rowCount } = await query(
-        `update annonces set statut='annulee'
-          where id=$1 and personne=$2 and statut='ouverte'`,
-        [id, moi.id]
-      );
+      const rowCount = await transaction(async (cx) => {
+        const { rowCount } = await cx.query(
+          `update annonces set statut='annulee'
+            where id=$1 and personne=$2 and statut='ouverte'`,
+          [id, moi.id]
+        );
+        if(rowCount) await cx.query(`delete from passagers where annonce_id=$1`, [id]);
+        return rowCount;
+      });
       if(!rowCount) return json(res, 409, { erreur:'introuvable', ...await panneau(moi.id) });
       return json(res, 200, await panneau(moi.id));
     }

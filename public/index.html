@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vroom ! · Midi ensemble</title>
+<meta name="description" content="Covoiturage entre collègues pour aller au RIA le midi : un panneau, un surnom, pas de mot de passe.">
+<meta name="theme-color" content="#2F6F62">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" href="/icon-192.png" type="image/png" sizes="192x192">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
@@ -15,7 +21,7 @@
     --ink:#17211C;
     --ink-2:#4C5A53;
     --ink-3:#5B6960;
-    --ink-4:#6B7871;
+    --ink-4:#5F6B64;
     --line:#E3DED2;
     --line-2:#D6D0C2;
     --teal:#2F6F62;
@@ -48,7 +54,8 @@
   .header .sub{margin:5px 0 0;font-size:13px;color:var(--ink-4);}
   .header .liens{display:flex;flex-wrap:wrap;gap:11px 14px;margin:6px 0 0;}
   .header .aide{
-    display:inline-block;font-size:12.5px;font-weight:600;
+    display:inline-flex;align-items:center;min-height:44px;margin:-11px 0;
+    font-size:12.5px;font-weight:600;
     color:var(--teal-dark);text-decoration:underline;
   }
   .bandeau{
@@ -74,6 +81,7 @@
   }
   .site-filter{display:flex;flex-wrap:wrap;gap:6px;}
   .site-chip{
+    min-height:44px;display:inline-flex;align-items:center;
     padding:7px 13px;border-radius:999px;border:1px solid var(--line);
     background:var(--card);color:var(--ink-2);
     font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap;
@@ -268,7 +276,7 @@
 </style>
 </head>
 <body>
-<div class="app">
+<main class="app">
   <div class="header">
     <div>
       <div class="title">
@@ -313,7 +321,7 @@
 
   <div id="list" aria-live="polite"></div>
   <div id="empty-state" class="empty" style="display:none;"></div>
-</div>
+</main>
 
 <div class="flash" id="flash" role="status" aria-live="polite" hidden></div>
 
@@ -404,8 +412,8 @@
   votre nom. Et ce qu'on n'a pas revu depuis un mois s'efface tout seul.</p>
   <div class="field">
     <label for="m-name">Surnom</label>
-    <input type="text" id="m-name" maxlength="30" autocomplete="nickname">
-    <p class="err" id="err-mname">Indiquez un surnom.</p>
+    <input type="text" id="m-name" maxlength="30" autocomplete="nickname" aria-describedby="err-mname">
+    <p class="err" id="err-mname" role="alert">Indiquez un surnom.</p>
   </div>
   <div class="sheet-actions">
     <button class="btn-cancel" id="btn-moi-cancel">Annuler</button>
@@ -428,8 +436,8 @@
   </div>
   <div class="field" id="nouveau-field" hidden>
     <label for="i-name">Votre surnom</label>
-    <input type="text" id="i-name" placeholder="Ex. Philou, Riton, Vélo22" maxlength="30" autocomplete="nickname">
-    <p class="err" id="err-iname">Indiquez un surnom.</p>
+    <input type="text" id="i-name" placeholder="Ex. Philou, Riton, Vélo22" maxlength="30" autocomplete="nickname" aria-describedby="err-iname">
+    <p class="err" id="err-iname" role="alert">Indiquez un surnom.</p>
   </div>
   <div class="sheet-actions">
     <button class="btn-cancel" id="btn-ident-new">Je n'y suis pas</button>
@@ -460,6 +468,8 @@ let apresIdent = null;       // le geste interrompu, repris après identificatio
 
 let annonces = [];
 let etag = null;
+let panneauOk = true;      // dernière lecture réussie ? évite de répéter l'alerte
+let panneauCharge = false; // au moins une lecture a réussi depuis l'ouverture
 let currentTab = 'offre';
 let currentSite = 'tous';      // départ filtré
 let currentArrivee = 'tous';   // arrivée filtrée
@@ -499,7 +509,10 @@ function majHorloge(){
 function prochainCreneau(){
   const d = new Date();
   const maintenant = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-  return CRENEAUX.find(c => c > maintenant) || CRENEAUX[0];
+  // Plus aucun créneau à venir (après 13h) : le dernier, pas le premier — il
+  // n'y a pas de « demain » à proposer ici (aller simple, panneau du jour),
+  // et le serveur refuse de toute façon (creneau_passe).
+  return CRENEAUX.find(c => c > maintenant) || CRENEAUX[CRENEAUX.length - 1];
 }
 function escapeHtml(str){
   const d = document.createElement('div');
@@ -670,27 +683,53 @@ async function entre(nom, nouveau){
 }
 
 /* --- serveur --------------------------------------------------------------- */
+/* Un panneau vide et un panneau injoignable se lisaient pareil — vide, sans
+   message — ce qui à 11h55 est la pire confusion possible (relevé le
+   26/09/2026). Les deux fonctions ci-dessous distinguent les deux, et
+   n'alertent qu'au changement d'état, pas à chaque sondage de 5 s. */
+function marquerInjoignable(){
+  if(panneauOk){ panneauOk = false; flash('Le panneau ne répond pas. Nouvel essai automatique.'); }
+  if(!panneauCharge){
+    listEl.innerHTML = '';
+    emptyEl.style.display = 'block';
+    emptyEl.textContent = "Panneau injoignable pour l'instant : ce n'est pas qu'il n'y a rien, la lecture échoue. Rechargez, ou patientez quelques secondes.";
+    countEl.textContent = '—';
+  }
+}
+function marquerJoignable(){
+  if(!panneauOk){ panneauOk = true; flash('Le panneau répond de nouveau.'); }
+}
+
 async function rafraichir(){
   try{
     const r = await fetch('/api/annonces', {
       headers: etag ? { 'if-none-match': etag } : {}
     });
-    if(r.status === 304) return;
+    if(r.status === 304){ marquerJoignable(); return; }
     if(r.status === 503){ flash("La base de données n'est pas encore branchée."); return; }
-    if(!r.ok) return;                 // erreur de lecture : on garde l'écran
+    if(!r.ok){ marquerInjoignable(); return; }
     etag = r.headers.get('etag');
     const corps = await r.json();
     annonces = corps.annonces || [];
+    panneauCharge = true;
+    marquerJoignable();
     render();
-  }catch(e){ /* réseau coupé : l'état affiché reste, il vaut mieux que rien */ }
+  }catch(e){ marquerInjoignable(); }
 }
 
 async function envoyer(chemin, methode, corps){
-  const r = await fetch(chemin, {
-    method: methode,
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify(corps)
-  });
+  let r;
+  try{
+    r = await fetch(chemin, {
+      method: methode,
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(corps)
+    });
+  }catch(e){
+    // Réseau coupé pendant l'écriture : jusqu'ici silencieux (relevé le
+    // 26/09/2026), le geste semblait passer sans qu'il se soit rien passé.
+    return { ok:false, code:0, data:{ erreur:'reseau' } };
+  }
   let data = {};
   try{ data = await r.json(); }catch(e){}
   // Toute réponse rapporte le panneau à jour, succès comme échec.
@@ -718,14 +757,24 @@ function placesLibres(a){ return Math.max(0, (a.places || 0) - passagersDe(a).le
 function estMienne(a){ return a.mienne === true; }
 function suisABord(a){ return a.a_bord === true; }
 
-/* La règle du 1bis.11, dite à l'usager dans ses mots. */
-function messageEngage(d){
+/* La règle du 1bis.11, dite à l'usager dans ses mots. Le message nomme
+   l'engagement déjà pris ET l'action qui vient d'être bloquée : les deux
+   ne coïncident pas toujours (on peut être bloqué en cherchant, pas
+   seulement en montant), et le dire faux était le défaut relevé au 24
+   et au 26/09/2026. */
+function messageEngage(d, actionTentee){
   const quand = d && d.heure ? ` à ${d.heure}` : " aujourd'hui";
-  if(d && d.quoi === 'conduit')
-    return `Vous conduisez déjà${quand}. Retirez votre trajet avant de monter avec quelqu'un.`;
-  if(d && d.quoi === 'monte')
-    return `Vous avez déjà une place${quand}. Désistez-vous d'abord.`;
-  return "Vous avez déjà un trajet aujourd'hui.";
+  const deja = d && d.quoi === 'conduit'
+    ? `Vous conduisez déjà${quand}.`
+    : d && d.quoi === 'monte'
+      ? `Vous avez déjà une place${quand}.`
+      : `Vous avez déjà un trajet${quand}.`;
+  const suite = {
+    monter:   " Désistez-vous, ou retirez votre trajet, avant de monter ailleurs.",
+    conduire: " Retirez votre trajet avant d'en publier un autre.",
+    chercher: " Retirez votre trajet avant de publier une recherche."
+  }[actionTentee] || " Désistez-vous, ou retirez votre trajet, d'abord.";
+  return deja + suite;
 }
 function estPassee(heure){
   const [h,m] = heure.split(':').map(Number);
@@ -900,13 +949,15 @@ function render(){
 /* --- actions --------------------------------------------------------------- */
 async function retirer(id){
   const r = await envoyer('/api/annonces', 'DELETE', { id });
-  if(!r.ok && r.data.erreur !== 'introuvable') flash("Retrait impossible pour l'instant.");
+  if(r.ok) flash('Votre annonce a été retirée.');
+  else if(r.data.erreur !== 'introuvable') flash("Retrait impossible pour l'instant.");
   render();
 }
 
 async function seDesister(annonce_id){
   const r = await envoyer('/api/places', 'DELETE', { annonce_id });
-  if(!r.ok) flash("Désistement impossible pour l'instant.");
+  if(r.ok) flash('Vous vous êtes désisté. Votre place est rendue.');
+  else flash("Désistement impossible pour l'instant.");
   render();
 }
 
@@ -943,10 +994,10 @@ async function confirmTake(){
 
   await pendant(document.getElementById('btn-take-confirm'), async ()=>{
     const r = await envoyer('/api/places', 'POST', { annonce_id: takeTargetId });
-    if(r.ok){ closeSheets(); render(); return; }
+    if(r.ok){ closeSheets(); render(); flash(`Vous êtes à bord, avec ${trajet.prenom || 'ce trajet'}.`); return; }
     closeSheets();
     if(r.data.erreur === 'deja_engage'){
-      render(); flash(messageEngage(r.data));
+      render(); flash(messageEngage(r.data, 'monter'));
     }else if(r.data.erreur === 'complet'){
       reproposer(trajet, r.data.par
         ? `La dernière place vient d'être prise par ${r.data.par}.`
@@ -982,9 +1033,11 @@ async function confirmDrive(){
   await pendant(document.getElementById('btn-drive-confirm'), async ()=>{
     const r = await envoyer('/api/demandes', 'POST',
       { demande_id: driveTargetId, heure, places });
-    if(r.ok){ closeSheets(); render(); return; }
+    if(r.ok){ closeSheets(); render(); flash(`Trajet publié, avec ${qui} à bord.`); return; }
     closeSheets(); render();
-    if(r.data.erreur === 'deja_engage') flash(messageEngage(r.data));
+    if(r.data.erreur === 'deja_engage') flash(messageEngage(r.data, 'conduire'));
+    else if(r.data.erreur === 'propre_demande') flash("C'est votre propre recherche : vous ne pouvez pas vous emmener vous-même.");
+    else if(r.data.erreur === 'creneau_passe') flash("Ce créneau est déjà passé. Choisissez une heure à venir.");
     else if(r.data.erreur === 'deja_pourvue') flash(`${qui} a déjà trouvé une place.`);
     else if(r.data.erreur === 'deja_partie') flash(`${qui} vient de trouver une place ailleurs.`);
     else flash("Publication impossible pour l'instant.");
@@ -1112,10 +1165,27 @@ btnConfirm.addEventListener('click', async ()=>{
   await pendant(btnConfirm, async ()=>{
     const r = await envoyer('/api/annonces', 'POST',
       { type: currentTab, site, arrivee, heure, places, note });
-    if(r.ok){ closeSheets(); render(); return; }
+    if(r.ok){
+      closeSheets();
+      // Sinon l'annonce qu'on vient de publier peut rester invisible derrière
+      // le filtre resté actif — signalé à plusieurs reprises fin septembre.
+      let masquee = false;
+      if((currentSite !== 'tous' && currentSite !== site) ||
+         (currentArrivee !== 'tous' && currentArrivee !== arrivee)){
+        currentSite = 'tous'; currentArrivee = 'tous'; renderFiltres();
+        masquee = true;
+      }
+      render();
+      flash((currentTab === 'offre' ? 'Trajet publié.' : 'Recherche publiée.') +
+            (masquee ? ' Filtres réinitialisés pour vous montrer votre annonce.' : ''));
+      return;
+    }
     render();
-    if(r.data.erreur === 'deja_engage'){ closeSheets(); flash(messageEngage(r.data)); }
-    else flash("Publication impossible pour l'instant.");
+    if(r.data.erreur === 'deja_engage'){
+      closeSheets(); flash(messageEngage(r.data, currentTab === 'offre' ? 'conduire' : 'chercher'));
+    }else if(r.data.erreur === 'creneau_passe'){
+      closeSheets(); flash("Ce créneau est déjà passé. Choisissez une heure à venir.");
+    }else flash("Publication impossible pour l'instant.");
   });
 });
 

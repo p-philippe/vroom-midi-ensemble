@@ -1,6 +1,6 @@
 import {
   transaction, panneau, valide, nouvelId, aujourdhui, json, configManquante,
-  verrouillePersonne, engagement, clotDemande
+  verrouillePersonne, engagement, clotDemande, heureCourante
 } from '../lib/db.js';
 import { personneCourante } from '../lib/session.js';
 
@@ -27,12 +27,25 @@ export default async function handler(req, res){
     if(!v.ok || !c.demande_id){
       return json(res, 400, { erreur:'champs_invalides', champs: v.err });
     }
+    if(v.out.heure < heureCourante()) return json(res, 400, { erreur:'creneau_passe' });
     const jour = aujourdhui();
 
     const issue = await transaction(async (cx)=>{
       await verrouillePersonne(cx, moi.id);
       const deja = await engagement(cx, moi.id, jour);
       if(deja) return { code: 409, corps: { erreur:'deja_engage', ...deja } };
+
+      // On ne s'emmène pas soi-même. Rien dans l'écran ne mène à ce geste
+      // (une demande qui est la vôtre affiche « Vous », pas « Je l'emmène »),
+      // mais l'API, elle, l'acceptait — trouvé par appel direct le 26/09/2026 :
+      // le panneau affichait un conducteur passager de sa propre voiture.
+      const { rows: verif } = await cx.query(
+        `select personne from annonces
+          where id=$1 and jour=$2 and type='demande' and statut='ouverte'`,
+        [c.demande_id, jour]
+      );
+      if(!verif.length) return { code: 409, corps: { erreur:'deja_pourvue' } };
+      if(verif[0].personne === moi.id) return { code: 409, corps: { erreur:'propre_demande' } };
 
       const { rows } = await cx.query(
         `update annonces set statut='pourvue'
