@@ -260,22 +260,8 @@
     .sheet{transition:none;}
   }
 </style>
-<style>
-  .hubert-filigrane{
-    position:fixed;inset:0;z-index:9999;pointer-events:none;
-    display:flex;align-items:center;justify-content:center;
-    overflow:hidden;
-  }
-  .hubert-filigrane span{
-    transform:rotate(-28deg);
-    font-size:clamp(22px,5vw,42px);font-weight:700;letter-spacing:0.02em;
-    color:rgba(47,111,98,0.14);white-space:nowrap;
-    user-select:none;-webkit-user-select:none;
-  }
-</style>
 </head>
 <body>
-<div class="hubert-filigrane" aria-hidden="true"><span>Hello world by Hubert</span></div>
 <main class="app">
   <div class="header">
     <div>
@@ -497,7 +483,7 @@ function itineraire(a){ return `${a.site} → ${a.arrivee}`; }
 function trajetsQuiCollent(site, arrivee){return annonces.filter(a => a.type === 'offre' && a.site === site && a.arrivee === arrivee && !estPassee(a.heure) && placesLibres(a) > 0).sort((a,b)=> a.heure.localeCompare(b.heure));}
 function renderChoix(elId, valeurs, courant, choisir){const el = document.getElementById(elId);el.innerHTML = '';valeurs.forEach(v => {const b = document.createElement('button');b.type = 'button';b.className = courant === v ? 'active' : '';b.setAttribute('aria-pressed', String(courant === v));b.textContent = String(v);b.addEventListener('click', ()=>{ choisir(v); });el.appendChild(b);});}
 function renderFormChoix(){renderChoix('f-heure', CRENEAUX, formHeure,v => { formHeure = v; renderFormChoix(); renderSuggestions(); });renderChoix('f-places', PLACES_CHOIX, formPlaces,v => { formPlaces = v; renderFormChoix(); });}
-function renderDriveChoix(){renderChoix('d-heure', CRENEAUX, driveHeure, v => { driveHeure = v; renderDriveChoix(); });renderChoix('d-places', PLACES_CHOIX, drivePlaces, v => { drivePlaces = v; renderDriveChoix(); });}
+function renderDriveChoix(){renderChoix('d-heure', CRENEAUX, driveHeure, v => { driveHeure = v; renderDriveChoix(); });renderChoix('d-places', PLACES_CHOIX, drivePlaces,v => { drivePlaces = v; renderDriveChoix(); });}
 function renderUnFiltre(elId, valeurs, courant, choisir, libelleTous){const el = document.getElementById(elId);el.innerHTML = '';['tous', ...valeurs].forEach(v => {const chip = document.createElement('button');chip.type = 'button';chip.className = 'site-chip' + (courant === v ? ' active' : '');chip.setAttribute('aria-pressed', String(courant === v));chip.textContent = v === 'tous' ? libelleTous : v;chip.addEventListener('click', ()=>{ choisir(v); renderFiltres(); render(); });el.appendChild(chip);});}
 function renderFiltres(){renderUnFiltre('filtre-depart', DEPARTS, currentSite,v => currentSite = v, 'Tous');renderUnFiltre('filtre-arrivee', ARRIVEES, currentArrivee,v => currentArrivee = v, 'Toutes');}
 function render(){const vues = annonces.filter(a => currentSite === 'tous' || a.site === currentSite).filter(a => currentArrivee === 'tous' || a.arrivee === currentArrivee).sort((a,b)=> a.heure.localeCompare(b.heure));const offres = vues.filter(a => a.type === 'offre').length;countEl.textContent = vues.length ? `${plural(offres,'trajet')} · ${plural(vues.length - offres,'recherche')}` : '—';listEl.innerHTML = '';if(!vues.length){emptyEl.style.display = 'block';emptyEl.textContent = (currentSite === 'tous' && currentArrivee === 'tous') ? "Rien pour l'instant. Publiez le premier créneau." : "Rien sur cet itinéraire. Élargissez le filtre, ou publiez votre créneau.";return;}emptyEl.style.display = 'none';vues.forEach(a => {const mienne = estMienne(a);const passee = estPassee(a.heure);const offre = a.type === 'offre';const complet = offre && placesLibres(a) === 0;const passagers = passagersDe(a);const pris = passagers.length;const row = document.createElement('div');row.className = `row ${a.type}` + (passee ? ' past' : '');let pips = '';if(offre && a.places){pips = '<div class="seats"><div class="pips">';for(let i = 0; i < a.places; i++){pips += `<span class="pip${i < pris ? ' on' : ''}"></span>`;}pips += `</div><span class="label">${escapeHtml(libelleplaces(a))}</span></div>`;}else if(!offre){pips = '<div class="seats"><span class="label">cherche une place</span></div>';}row.innerHTML = `
