@@ -421,6 +421,7 @@ let moi = null;
 let gens = [];
 let apresIdent = null;
 let annonces = [];
+let jourPanneau = null;
 let etag = null;
 let panneauOk = true;
 let panneauCharge = false;
@@ -454,7 +455,7 @@ function prochainCreneau(){const d = new Date();const maintenant = `${String(d.g
 function escapeHtml(str){const d = document.createElement('div');d.textContent = str == null ? '' : String(str);return d.innerHTML;}
 function plural(n, mot){ return `${n} ${mot}${n > 1 ? 's' : ''}`; }
 let flashTimer = null;
-function flash(message){flashEl.textContent = message;flashEl.hidden = false;clearTimeout(flashTimer);flashTimer = setTimeout(()=>{ flashEl.hidden = true; }, 7000);}
+function flash(message, duree = 7000){flashEl.textContent = message;flashEl.hidden = false;clearTimeout(flashTimer);flashTimer = setTimeout(()=>{ flashEl.hidden = true; }, duree);}
 async function litSession(){try{const r = await fetch('/api/session');if(!r.ok) return;const d = await r.json();moi = d.connecte ? { prenom: d.prenom } : null;gens = Array.isArray(d.gens) ? d.gens : [];}catch(e){}renderMoi();}
 function renderMoi(){const el = document.getElementById('moi-ligne');el.innerHTML = '';el.hidden = !moi;if(!moi) return;const txt = document.createElement('span');txt.textContent = `Vous êtes ${moi.prenom}.`;const btn = document.createElement('button');btn.type = 'button';btn.textContent = 'Corriger, ou ce n’est pas vous ?';btn.addEventListener('click', openMoi);el.appendChild(txt);el.appendChild(btn);}
 function openMoi(){document.getElementById('m-name').value = moi?.prenom || '';setError('m-name','err-mname',false);openSheetEl(moiSheet, document.getElementById('m-name'));}
@@ -469,13 +470,17 @@ async function confirmIdent(){const nom = document.getElementById('i-name').valu
 async function entre(nom, nouveau){const r = await envoyer('/api/session', 'POST', { prenom: nom, nouveau });if(r.code === 409 && r.data.erreur === 'nom_pris'){flash(`« ${r.data.nom} » est déjà dans la liste. Si c'est vous, choisissez-vous dedans. Sinon, prenez un autre surnom.`);modeNouveau(false);return;}if(!r.ok){ flash("Identification impossible pour l'instant."); return; }moi = { prenom: r.data.prenom };gens = Array.isArray(r.data.gens) ? r.data.gens : gens;renderMoi();closeSheets();etag = null;await rafraichir();const suite = apresIdent; apresIdent = null;if(suite) suite();}
 function marquerInjoignable(){if(panneauOk){ panneauOk = false; flash('Le panneau ne répond pas. Nouvel essai automatique.'); }if(!panneauCharge){listEl.innerHTML = '';emptyEl.style.display = 'block';emptyEl.textContent = "Panneau injoignable pour l'instant : ce n'est pas qu'il n'y a rien, la lecture échoue. Rechargez, ou patientez quelques secondes.";countEl.textContent = '—';}}
 function marquerJoignable(){if(!panneauOk){ panneauOk = true; flash('Le panneau répond de nouveau.'); }}
-async function rafraichir(){try{const r = await fetch('/api/annonces', {headers: etag ? { 'if-none-match': etag } : {}});if(r.status === 304){ marquerJoignable(); return; }if(r.status === 503){ flash("La base de données n'est pas encore branchée."); return; }if(!r.ok){ marquerInjoignable(); return; }etag = r.headers.get('etag');const corps = await r.json();annonces = corps.annonces || [];panneauCharge = true;marquerJoignable();render();}catch(e){ marquerInjoignable(); }}
-async function envoyer(chemin, methode, corps){let r;try{r = await fetch(chemin, {method: methode,headers: { 'content-type': 'application/json' },body: JSON.stringify(corps)});}catch(e){return { ok:false, code:0, data:{ erreur:'reseau' } };}let data = {};try{ data = await r.json();}catch(e){}if(Array.isArray(data.annonces)){ annonces = data.annonces; etag = null; }if(r.status === 401){ moi = null; renderMoi(); }return { ok: r.ok, code: r.status, data };}
+async function rafraichir(){try{const r = await fetch('/api/annonces', {headers: etag ? { 'if-none-match': etag } : {}});if(r.status === 304){ marquerJoignable(); return; }if(r.status === 503){ flash("La base de données n'est pas encore branchée."); return; }if(!r.ok){ marquerInjoignable(); return; }etag = r.headers.get('etag');const corps = await r.json();majAnnonces(corps.annonces || [], corps.jour);panneauCharge = true;marquerJoignable();render();}catch(e){ marquerInjoignable(); }}
+async function envoyer(chemin, methode, corps){let r;try{r = await fetch(chemin, {method: methode,headers: { 'content-type': 'application/json' },body: JSON.stringify(corps)});}catch(e){return { ok:false, code:0, data:{ erreur:'reseau' } };}let data = {};try{ data = await r.json();}catch(e){}if(Array.isArray(data.annonces)){ majAnnonces(data.annonces, data.jour); etag = null; }if(r.status === 401){ moi = null; renderMoi(); }return { ok: r.ok, code: r.status, data };}
 async function pendant(btn, action){if(!btn) return action();const texte = btn.textContent;btn.disabled = true;btn.textContent = '…';try{ return await action(); }finally{ btn.disabled = false; btn.textContent = texte; }}
 function passagersDe(a){ return Array.isArray(a.passagers) ? a.passagers : []; }
 function placesLibres(a){ return Math.max(0, (a.places || 0) - passagersDe(a).length); }
 function estMienne(a){ return a.mienne === true; }
 function suisABord(a){ return a.a_bord === true; }
+/* Le panneau change de mains : si une annonce où j'étais à bord n'y est plus
+   (le conducteur l'a retirée), on le dit — sans cela le trajet s'évapore.
+   Un changement de jour efface tout le panneau : ce n'est pas un retrait. */
+function majAnnonces(liste, jour){const avant = annonces.filter(suisABord);const memeJour = !jour || !jourPanneau || jour === jourPanneau;annonces = liste;if(jour) jourPanneau = jour;if(!memeJour) return;const ids = new Set(liste.map(a => a.id));const partis = avant.filter(a => !ids.has(a.id));if(!partis.length) return;const t = partis.map(a => `${a.prenom} (${a.heure})`).join(', ');flash(partis.length > 1 ? `Trajets retirés par leur conducteur : ${t}. Vos places sont libérées : vous pouvez en reprendre une.` : `${partis[0].prenom} a retiré son trajet de ${partis[0].heure}. Votre place est libérée : vous pouvez en reprendre une.`, 30000);}
 function messageEngage(d, actionTentee){const quand = d && d.heure ? ` à ${d.heure}` : " aujourd'hui";const [deja, remede] = d && d.quoi === 'conduit' ? [`Vous conduisez déjà${quand}.`, 'Retirez votre trajet'] : d && d.quoi === 'monte' ? [`Vous avez déjà une place${quand}.`, 'Désistez-vous'] : [`Vous avez déjà un trajet${quand}.`, 'Désistez-vous ou retirez votre trajet'];const but = {monter: 'avant de monter ailleurs',conduire: 'avant de publier un trajet',chercher: 'avant de publier une recherche'}[actionTentee] || "d'abord";return `${deja} ${remede} ${but}.`;}
 function estPassee(heure){const [h,m] = heure.split(':').map(Number);const t = new Date(); t.setHours(h,m,0,0);return t < new Date();}
 function libelleplaces(a){const n = placesLibres(a);return n === 0 ? 'complet' : plural(n,'place') + ' libre' + (n > 1 ? 's' : '');}
