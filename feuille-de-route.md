@@ -5,8 +5,8 @@
 
 Pensée simple, accessible, fluide, souple : écran unique, web app légère (KISS/YAGNI).
 
-Dernière mise à jour : 27/09/2026 — voir 7.6, relève avec les correctifs
-qu'elle a livrés. En ligne, avec les vrais lieux et les créneaux, sur
+Dernière mise à jour : 04/10/2026 — voir 7.9, relève avec le correctif
+qu'elle a livré. En ligne, avec les vrais lieux et les créneaux, sur
 https://vroom-midi-ensemble.vercel.app (Vercel + Postgres Neon, région Francfort).
 Le volet RGPD est sorti de ce document : voir `conformite-rgpd.md`.
 
@@ -850,6 +850,56 @@ pendant le test réel (4.6), et prépare la sortie de scène de son auteur.*
      chaque relève, avis en bas, dix lignes au plus, réponses courtes juste
      dessous. Liens mis à jour dans l'appli, la notice, le README et le
      dossier de reprise.
+
+7.9 **Relève du 04/10/2026 — le passager orphelin n'est plus silencieux,
+     et des commits directs trouvés hors du cahier.** Lu Hubert (28 et
+     29/09) et Kernel (29/09, campagne n° 3) : zéro régression (68/68),
+     aucun défaut de données nouveau. Un même défaut revenait pour la
+     troisième fois (25, 28, 29/09), priorité haute : depuis le 27/09 un
+     conducteur qui retire son trajet avec un passager à bord ne le piège
+     plus côté données, mais l'écran du passager restait muet — aucun
+     toast, aucun signe que le trajet venait de disparaître.
+     - **Corrigé.** Le client compare le panneau reçu au précédent, avant
+       de l'écraser (dans `rafraichir()` et dans `envoyer()`, via
+       `majAnnonces()`), et prévient si un trajet où j'étais à bord
+       disparaît : « X a retiré son trajet de HH:MM. Votre place est
+       libérée : vous pouvez en reprendre une. », affiché 30 s. Le
+       changement de jour (minuit) est écarté explicitement, pour ne pas
+       déclencher un faux signalement quand le panneau se vide tout seul.
+     - **Origine du correctif.** En préparant ce correctif, deux choses
+       inattendues trouvées dans l'historique git, hors du cahier et donc
+       hors de ce que la relève lit d'ordinaire : le 02/10, trois commits
+       directs sur `main` (auteur `p-philippe`, donc côté Philippe ou de
+       son outillage, pas une intrusion) — une expérience de filigrane
+       « Hello world » signée « Hubert » qui a effacé `public/index.html`
+       puis l'a restauré treize minutes plus tard. Fonctionnalités et
+       attributs d'accessibilité vérifiés identiques (mêmes fonctions,
+       mêmes `role`/`aria-*`), mais tous les commentaires du code —
+       dont l'essentiel de la mémoire des incidents passés — ont été
+       perdus dans l'opération. Le 03/10, une branche séparée
+       (`claude/prevenir-passager-retrait`, auteur Claude) contenait déjà
+       un correctif pour ce même défaut, plus complet que celui que
+       j'avais écrit indépendamment (il gère le changement de jour, que
+       j'avais raté) : adopté à la place du mien, fusionné dans `main`,
+       aucune duplication.
+     - **Vérifié** en local puis **en production réelle** : deux identités
+       de test (conducteur, passager), un vrai navigateur pour le
+       passager, montée puis annulation côté conducteur, message
+       confirmé, 0 faux positif (trajet qui reste, propre retrait,
+       changement de jour simulé). Identités de test retirées après coup,
+       panneau revenu propre.
+     - **Pas traité cette semaine** (une seule voix, P1/P2, pas d'urgence) :
+       indice de filtre qui masque sa propre annonce, message de
+       troncature du surnom, confirmation avant un retrait avec passager
+       à bord, normalisation des surnoms visuellement proches (homoglyphes
+       Unicode, relevé par Kernel), aperçu de partage (balises `og:`).
+     - **Pas un défaut de code** : 81 surnoms de test accumulés en deux
+       jours (Kernel, 29/09) — ils s'effacent seuls après un mois
+       d'inactivité (`purgeOublies`) ; discipline de fin de session à
+       tenir côté testeurs, pas un correctif.
+     Écrit sur le pad, signé « l'IA du pad », avec le même détail que
+     ci-dessus sur les commits trouvés. Commit `cc909dd` (repris tel
+     quel depuis la branche), déployé en production.
 
 ---
 
