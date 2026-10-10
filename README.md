@@ -1,5 +1,10 @@
 # Vroom ! — Midi ensemble
 
+> **Projet fermé le 10/10/2026.** Aucun service n'a pu reprendre
+> l'hébergement : l'adresse en ligne affiche une page de clôture. Le code
+> reste public, sous licence MIT, et peut être redéployé ailleurs (retirer
+> les redirections de `vercel.json`). Détail : `feuille-de-route.md`, 7.11.
+
 Covoiturage du midi entre collègues d'un même site de travail (trajets vers le
 restaurant inter-administratif). Expérimentation : quand le service
 fonctionnera, un service informatique prendra le relais pour l'installer dans

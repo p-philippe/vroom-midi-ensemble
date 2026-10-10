@@ -1,5 +1,11 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
-  "functions": { "api/*.js": { "maxDuration": 10 } }
+  "functions": { "api/*.js": { "maxDuration": 10 } },
+  "redirects": [
+    { "source": "/", "destination": "/ferme.html", "statusCode": 307 },
+    { "source": "/index.html", "destination": "/ferme.html", "statusCode": 307 },
+    { "source": "/aide.html", "destination": "/ferme.html", "statusCode": 307 },
+    { "source": "/api/:path*", "destination": "/ferme.html", "statusCode": 307 }
+  ]
 }

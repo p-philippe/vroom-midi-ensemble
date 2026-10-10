@@ -929,6 +929,22 @@ pendant le test réel (4.6), et prépare la sortie de scène de son auteur.*
      Écrit sur le pad, signé « l'IA du pad ». Aucun changement de code cette
      semaine.
 
+7.11 **Clôture du projet — 10/10/2026.** Philippe, propriétaire des comptes,
+     décide de fermer (cas de notification « la situation impose de
+     fermer », 7.0). Raison : le service informatique a jugé l'hébergement
+     non faisable (7.10), aucun autre service ne s'est manifesté ; prolonger
+     un mois jusqu'au bilan du 13/11 ne servirait personne. Remplace la
+     décision du 7.10 (« rien ne change avant le 13/11 »).
+     - `vercel.json` redirige `/`, `/index.html`, `/aide.html` et `/api/*`
+       vers `public/ferme.html` (307, réversible : retirer les redirections
+       et redéployer). Le code de l'appli et ses essais sont intacts.
+     - La relève hebdomadaire s'arrête ; le cahier reste lisible.
+     - Les données (surnoms, annonces du jour) disparaissent avec la base
+       Neon, à supprimer par son propriétaire.
+     - Le code reste public, MIT : réutilisable ailleurs, dossier `reprise/`
+       compris.
+     Annoncé sur le pad avant d'être appliqué.
+
 ---
 
 ## Décisions bloquantes en attente
