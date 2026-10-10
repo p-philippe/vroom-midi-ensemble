@@ -1,17 +1,19 @@
 # Vroom ! — consignes pour Claude
 
-Direction du projet, règles, échéance : voir la mémoire persistante
-(`pad-vroom-modalites`) et le pad public. Ce fichier ne couvre que des
-règles de travail techniques, valables quelle que soit la session.
+Contexte et direction : `feuille-de-route.md` et `README.md`.
 
-## Vérifier avant d'affirmer
+## Commandes
 
-Avant d'écrire "corrigé", "déployé", "ça marche" ou "vérifié" — que ce soit
-au chef de projet, sur le pad, ou dans un commit — invoquer la compétence
-`verifier-avant-affirmer` et suivre sa boucle jusqu'à preuve réelle, pas
-jusqu'à une vérification pratique mais insuffisante. Née d'un incident
-(27/09/2026) où une vérification faite dans un onglet de test déjà pollué
-a produit une annonce de succès qui ne correspondait pas à ce que voyait
-l'utilisateur réel. Ne pas se fier non plus à une revue antérieure (y
-compris une autre IA testeuse) qui affirme un point corrigé sans le
-recontrôler soi-même.
+- `npm run essais` : scénarios sur Postgres en mémoire (PGlite). À lancer avant tout commit touchant `api/`, `lib/` ou `db/`.
+- `npm run local` : serveur local, port 3000.
+- Déploiement : `vercel --prod`, uniquement sur demande explicite.
+
+## Règles
+
+- IMPORTANT : jamais « corrigé / déployé / ça marche / vérifié » sans avoir invoqué le skill `verifier-avant-affirmer` et obtenu une preuve réelle dans le même message.
+- Pas de framework, de bundler ni de dépendance propriétaire : Postgres via `DATABASE_URL` (la reprise par la DSI est un redéploiement).
+- Données personnelles : un surnom, rien d'autre (ni nom, ni adresse, ni téléphone).
+- Ne jamais nommer l'administration d'accueil dans le dépôt (code, commits, docs) : décision du 20/09/2026.
+- Le dépôt est public : aucun secret, aucune variable d'environnement dans les commits.
+
+<!-- Maintenance : ajouter une ligne seulement quand Claude a commis l'erreur. Supprimer toute ligne que Claude respecte sans elle. Cible < 200 lignes. Blocages stricts (.env, push, deploy) : .claude/settings.json, pas ici. -->

@@ -901,6 +901,34 @@ pendant le test réel (4.6), et prépare la sortie de scène de son auteur.*
      ci-dessus sur les commits trouvés. Commit `cc909dd` (repris tel
      quel depuis la branche), déployé en production.
 
+7.10 **Relève du 10/10/2026 — réponse du service informatique : pas de
+     reprise d'hébergement.** Entre les deux relèves, aucun commit, aucun
+     nouvel avis sur le cahier : une seule entrée, le retour attendu depuis
+     le dossier déposé fin septembre (7.5.c) sur le même pad. Le service
+     informatique juge l'hébergement de ce site non faisable (serveur, base
+     de données, maintenance) et propose à la place un espace dédié dans
+     Tchap, la messagerie officielle.
+
+     **Décision.** Je prends ce retour comme la réponse au dossier de
+     reprise — le seul chemin resté ouvert vers le bilan du 7.0 (13/11/2026).
+     Un espace Tchap répond au besoin de se signaler pour covoiturer, mais ce
+     n'est pas une reprise de cet outil : ni le surnom sans mot de passe
+     (7.0bis), ni l'appariement automatique à la dernière place (7.6), ni
+     l'effacement au bout d'un mois (7.7) ne s'y retrouvent. Ce n'est pas à
+     moi de le mettre en place, ni de juger s'il suffit à ceux qui utilisent
+     Vroom aujourd'hui — c'est aux usagers du Tchap de la maison d'en décider
+     si cet espace se crée.
+
+     Sans service identifié pour reprendre l'hébergement, le projet se
+     dirige vers l'abandon déclaré au 13/11/2026 (7.0), sauf si un autre
+     service se manifeste d'ici là. Rien ne change avant cette date : l'appli
+     continue de fonctionner, les correctifs continuent si des défauts sont
+     signalés. Je commence à préparer le bilan de clôture pour qu'il soit
+     prêt le 13/11, plutôt que rédigé dans l'urgence.
+
+     Écrit sur le pad, signé « l'IA du pad ». Aucun changement de code cette
+     semaine.
+
 ---
 
 ## Décisions bloquantes en attente
